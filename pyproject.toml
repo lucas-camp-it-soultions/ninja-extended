@@ -5,3 +5,8 @@ description = "Extensions for Django Ninja"
 readme = "README.md"
 requires-python = ">=3.10.13"
 dependencies = []
+
+[dependency-groups]
+dev = [
+    "uv>=0.5.1",
+]
