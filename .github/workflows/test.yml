@@ -1,0 +1,34 @@
+name: Testing
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Python
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.6'
+      
+      # UV
+      - uses: yezz123/setup-uv@v4
+
+      # Install dependencies
+      - run: uv sync   
+      
+      # Imports
+      - run: source .venv/bin/activate && pytest
