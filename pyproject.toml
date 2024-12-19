@@ -25,6 +25,10 @@ line-length = 120
 indent-width = 4
 target-version = "py310"
 
+exclude = [
+  "tests",
+]
+
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
