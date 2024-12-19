@@ -1,8 +1,12 @@
 """Module errors.integrity.base."""
 
-from django.db import IntegrityError, connection
+from django.db import IntegrityError
 
+from ninja_extended.errors.integrity.postgres import PostgresIntegrityErrorParser
 from ninja_extended.errors.integrity.sqlite3 import SQLite3IntegrityErrorParser
+
+from psycopg2.errors import UniqueViolation, NotNullViolation
+from sqlite3 import IntegrityError as SQLite3IntegrityError
 
 
 class IntegrityErrorParser:
@@ -23,7 +27,10 @@ class IntegrityErrorParser:
 
         parse_error_message_unknown_vendor = "Unable to parse Integrity Error. Unknown database vendor."
 
-        if connection.vendor == "sqlite":
+        if isinstance(error.__cause__, NotNullViolation | UniqueViolation):
+            return PostgresIntegrityErrorParser().parse(error=error)
+
+        if isinstance(error.__cause__, SQLite3IntegrityError):
             return SQLite3IntegrityErrorParser().parse(error=error)
 
         raise RuntimeError(parse_error_message_unknown_vendor)
