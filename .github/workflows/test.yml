@@ -13,6 +13,20 @@ permissions:
 jobs:
   testing:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15.2
+        env:
+          POSTGRES_USER: demo
+          POSTGRES_PASSWORD: demo
+          POSTGRES_DB: demo
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       # Checkout
       - uses: actions/checkout@v4
