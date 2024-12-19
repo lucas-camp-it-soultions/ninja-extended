@@ -1,7 +1,8 @@
 from decimal import Decimal
 
 import pytest
-from ninja_extended.utils import camel_to_kebap, convert_value_to_detail_string, snake_to_camel, pluralize
+
+from ninja_extended.utils import camel_to_kebap, convert_value_to_detail_string, pluralize, snake_to_camel
 
 
 @pytest.mark.parametrize(
@@ -28,6 +29,7 @@ def test_camel_to_kebap(camel_string: str, kebap_string: str):
 )
 def test_camel_to_kebap(snake_string: str, camel_string: str):
     assert snake_to_camel(value=snake_string) == camel_string
+
 
 @pytest.mark.parametrize(
     "value,output",
@@ -56,7 +58,7 @@ def test_convert_value_to_detail_string(value: bool, output: str):
         ["country", "countries"],
         ["leef", "leeves"],
         ["life", "lives"],
-        ["apple", "apples"]
+        ["apple", "apples"],
     ],
 )
 def test_pluralize(singular: str, plural: str):

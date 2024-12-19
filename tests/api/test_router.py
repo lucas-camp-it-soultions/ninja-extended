@@ -31,7 +31,7 @@ def test_extended_router_raises_operation_id_on_router_already_registered(
         description="Description.",
         tags=["tag"],
     )(operation)
-    
+
     with pytest.raises(
         expected_exception=OperationIdOnRouterAlreadyRegisteredError,
         match=f"Operation id 'operation_id' already registered on router with id {router_id}.",

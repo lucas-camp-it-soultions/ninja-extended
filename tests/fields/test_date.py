@@ -1,8 +1,9 @@
 from datetime import date
 
 import pytest
-from ninja_extended.fields.date import DateField, DateFieldValues
 from pydantic_core import PydanticUndefined
+
+from ninja_extended.fields.date import DateField, DateFieldValues
 
 DEFAULT_VALUES = [
     date(year=1970, month=1, day=1),
@@ -29,9 +30,7 @@ def test_field_call_default(field_values: DateFieldValues, mocker):
 
     DateField(field_values=field_values)
 
-    field_mock.assert_called_once_with(
-        field_values=field_values, default=PydanticUndefined
-    )
+    field_mock.assert_called_once_with(field_values=field_values, default=PydanticUndefined)
 
 
 @pytest.mark.parametrize("default_value", DEFAULT_VALUES)
@@ -49,6 +48,4 @@ def test_field_call(field_values: DateFieldValues, default_value, mocker):
 
     DateField(field_values=field_values, default=default_value)
 
-    field_mock.assert_called_once_with(
-        **field_values.model_dump(), default=default_value
-    )
+    field_mock.assert_called_once_with(**field_values.model_dump(), default=default_value)

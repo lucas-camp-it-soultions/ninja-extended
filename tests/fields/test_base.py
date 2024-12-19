@@ -1,5 +1,6 @@
-from ninja_extended.fields.base import BaseField, BaseFieldValues
 from pydantic_core import PydanticUndefined
+
+from ninja_extended.fields.base import BaseField, BaseFieldValues
 
 
 def test_field_values_default_values():
@@ -16,9 +17,7 @@ def test_field_default(mocker):
 
     BaseField(field_values=field_values)
 
-    field_mock.assert_called_once_with(
-        description="Description", strict=True, default=PydanticUndefined
-    )
+    field_mock.assert_called_once_with(description="Description", strict=True, default=PydanticUndefined)
 
 
 def test_field(mocker):
@@ -28,6 +27,4 @@ def test_field(mocker):
 
     BaseField(field_values=field_values, default="foobar")
 
-    field_mock.assert_called_once_with(
-        description="Description", strict=True, default="foobar"
-    )
+    field_mock.assert_called_once_with(description="Description", strict=True, default="foobar")

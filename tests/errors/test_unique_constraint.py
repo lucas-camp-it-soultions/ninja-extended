@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 import pytest
+
 from ninja_extended.errors import UniqueConstraintError
 
 

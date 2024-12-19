@@ -46,7 +46,7 @@ def test_extended_api_raises_operation_id_on_api_already_registered(
     )(operation)
 
     api.add_router(prefix="/1", router=router_1)
-    
+
     with pytest.raises(
         expected_exception=OperationIdOnAPIAlreadyRegisteredError,
         match=f"Operation id 'operation_id' already registered on api with id {api_id}.",

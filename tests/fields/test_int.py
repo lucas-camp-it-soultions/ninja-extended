@@ -1,6 +1,7 @@
 import pytest
-from ninja_extended.fields.int import IntField, IntFieldValues
 from pydantic_core import PydanticUndefined
+
+from ninja_extended.fields.int import IntField, IntFieldValues
 
 DEFAULT_VALUES = [-42, 0, 42, None]
 
@@ -25,9 +26,7 @@ def test_field_call_default(field_values: IntFieldValues, mocker):
 
     IntField(field_values=field_values)
 
-    field_mock.assert_called_once_with(
-        field_values=field_values, default=PydanticUndefined
-    )
+    field_mock.assert_called_once_with(field_values=field_values, default=PydanticUndefined)
 
 
 @pytest.mark.parametrize("default_value", DEFAULT_VALUES)
@@ -45,6 +44,4 @@ def test_field_call(field_values: IntFieldValues, default_value, mocker):
 
     IntField(field_values=field_values, default=default_value)
 
-    field_mock.assert_called_once_with(
-        **field_values.model_dump(), default=default_value
-    )
+    field_mock.assert_called_once_with(**field_values.model_dump(), default=default_value)
