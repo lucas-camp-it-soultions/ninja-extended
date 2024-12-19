@@ -48,5 +48,5 @@ jobs:
       - run: source .venv/bin/activate && pytest
     
     env:
-      POSTGRES_HOST: postgres
+      POSTGRES_HOST: localhost
       POSTGRES_PORT: 5432
