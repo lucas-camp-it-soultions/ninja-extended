@@ -15,6 +15,7 @@ build-backend = "setuptools.build_meta"
 
 [dependency-groups]
 dev = [
+    "psycopg2-binary>=2.9.10",
     "pytest-django>=4.9.0",
     "pytest-mock>=3.14.0",
     "pytest>=8.3.3",
