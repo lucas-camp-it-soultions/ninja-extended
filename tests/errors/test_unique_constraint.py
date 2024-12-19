@@ -26,12 +26,12 @@ def fields():
 
 
 def test_not_found_error(fields):
-    ErrorModel = ResourceUniqueConstraintError.schema()
+    error_model = ResourceUniqueConstraintError.schema()
     path = "/resource/1"
     operation_id = "getResource"
 
     error = ResourceUniqueConstraintError(fields=fields)
-    model = ErrorModel(**error.to_dict(), path=path, operation_id=operation_id)
+    model = error_model(**error.to_dict(), path=path, operation_id=operation_id)
 
     assert model.type == "errors/resources/unique-constraint"
     assert model.title == "Unique constraint violation for Resource."
@@ -46,12 +46,12 @@ def test_not_found_error(fields):
 
 
 def test_not_found_error_2(fields):
-    ErrorModel = FooBarUniqueConstraintError.schema()
+    error_model = FooBarUniqueConstraintError.schema()
     path = "/foo-bar/1"
     operation_id = "getFooBar"
 
     error = FooBarUniqueConstraintError(fields=fields)
-    model = ErrorModel(**error.to_dict(), path=path, operation_id=operation_id)
+    model = error_model(**error.to_dict(), path=path, operation_id=operation_id)
 
     assert model.type == "errors/foo-bars/unique-constraint"
     assert model.title == "Unique constraint violation for FooBar."

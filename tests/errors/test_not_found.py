@@ -26,12 +26,12 @@ def fields():
 
 
 def test_not_found_error(fields):
-    ErrorModel = ResourceNotFoundError.schema()
+    error_model = ResourceNotFoundError.schema()
     path = "/resource/1"
     operation_id = "getResource"
 
     error = ResourceNotFoundError(fields=fields)
-    model = ErrorModel(**error.to_dict(), path=path, operation_id=operation_id)
+    model = error_model(**error.to_dict(), path=path, operation_id=operation_id)
 
     assert model.type == "errors/resources/not-found"
     assert model.title == "Resource not found."
@@ -46,12 +46,12 @@ def test_not_found_error(fields):
 
 
 def test_not_found_error_2(fields):
-    ErrorModel = FooBarNotFoundError.schema()
+    error_model = FooBarNotFoundError.schema()
     path = "/foo-bar/1"
     operation_id = "getFooBar"
 
     error = FooBarNotFoundError(fields=fields)
-    model = ErrorModel(**error.to_dict(), path=path, operation_id=operation_id)
+    model = error_model(**error.to_dict(), path=path, operation_id=operation_id)
 
     assert model.type == "errors/foo-bars/not-found"
     assert model.title == "FooBar not found."
