@@ -43,17 +43,7 @@ class ResourceResponse(Schema):
     tags=["resources"],
     response=ResourceResponse,
 )
-def create_resource(request: HttpRequest, data: ResourceCreateRequest):
-    try:
-        return Resource.objects.create(**data.model_dump())
-    except IntegrityError as error:
-        # print(error)
-        # print(error.__cause__)
-        # print(error.args)
-
-        columns = IntegrityErrorParser().parse(error=error)
-
-        print(columns)
-
+def create_resource(request: HttpRequest, data: ResourceCreateRequest): # noqa: ARG001
+    return Resource.objects.create(**data.model_dump())
 
 api.add_router("", router)
