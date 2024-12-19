@@ -88,6 +88,7 @@ def test_unique_constraint_multiple_postgres_unique_constraint(resource_data, re
         "value_unique_together_2",
     ]
 
+
 @pytest.mark.django_db(databases=["postgres"])
 def test_unique_constraint_multiple_postgres(resource_data, resource_data_unique_multiple):
     Resource.objects.using("postgres").create(**resource_data)

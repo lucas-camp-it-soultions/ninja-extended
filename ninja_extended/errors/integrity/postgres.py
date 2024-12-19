@@ -9,7 +9,9 @@ from django.db import IntegrityError
 class PostgresUniqueConstraintIntegrityErrorParser:
     """Parser for unique constraint error for Postgres."""
 
-    pattern: Pattern[str] = "duplicate key value violates unique constraint \"(?P<constraint_name>.*)\"\\nDETAIL:\s*Key \((?P<columns_string>.*)\)=\((?P<values_string>.*)\) already exists.\\n"  # noqa: Q003, W605
+    pattern: Pattern[str] = (
+        'duplicate key value violates unique constraint "(?P<constraint_name>.*)"\\nDETAIL:\s*Key \((?P<columns_string>.*)\)=\((?P<values_string>.*)\) already exists.\\n'  # noqa: Q003, W605
+    )
 
     def parse(self, error: IntegrityError) -> list[str]:
         """Parse IntegrityError.
@@ -32,7 +34,6 @@ class PostgresUniqueConstraintIntegrityErrorParser:
 
         if len(error.args) != 1:
             raise RuntimeError(parse_error_message_multiple_args)
-
 
         arg = error.args[0]
 
@@ -57,7 +58,9 @@ class PostgresUniqueConstraintIntegrityErrorParser:
 class PostgresNotNullIntegrityErrorParser:
     """Parser for not null error for Postgres."""
 
-    pattern: Pattern[str] = "null value in column \"(?P<column_string>.*)\" of relation \"(?P<relation_name>.*)\" violates not-null constraint\\nDETAIL:\s*Failing row contains \((?P<values_string>.*)\).\\n"
+    pattern: Pattern[str] = (
+        'null value in column "(?P<column_string>.*)" of relation "(?P<relation_name>.*)" violates not-null constraint\\nDETAIL:\s*Failing row contains \((?P<values_string>.*)\).\\n'
+    )
 
     def parse(self, error: IntegrityError) -> list[str]:
         """Parse IntegrityError.

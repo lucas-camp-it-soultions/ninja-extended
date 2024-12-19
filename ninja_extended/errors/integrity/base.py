@@ -1,12 +1,12 @@
 """Module errors.integrity.base."""
 
+from sqlite3 import IntegrityError as SQLite3IntegrityError
+
 from django.db import IntegrityError
+from psycopg2.errors import NotNullViolation, UniqueViolation
 
 from ninja_extended.errors.integrity.postgres import PostgresIntegrityErrorParser
 from ninja_extended.errors.integrity.sqlite3 import SQLite3IntegrityErrorParser
-
-from psycopg2.errors import UniqueViolation, NotNullViolation
-from sqlite3 import IntegrityError as SQLite3IntegrityError
 
 
 class IntegrityErrorParser:
