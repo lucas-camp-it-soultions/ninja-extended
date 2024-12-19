@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -84,8 +85,8 @@ DATABASES = {
         "NAME": "demo",
         "USER": "demo",
         "PASSWORD": "demo",
-        "HOST": "localhost",
-        "PORT": 5432,
+        "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
+        "PORT": os.environ.get("POSTGRES_PORT", "localhost"),
     },
 }
 

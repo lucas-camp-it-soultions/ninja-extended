@@ -43,7 +43,8 @@ class ResourceResponse(Schema):
     tags=["resources"],
     response=ResourceResponse,
 )
-def create_resource(request: HttpRequest, data: ResourceCreateRequest): # noqa: ARG001
+def create_resource(request: HttpRequest, data: ResourceCreateRequest):  # noqa: ARG001
     return Resource.objects.create(**data.model_dump())
+
 
 api.add_router("", router)

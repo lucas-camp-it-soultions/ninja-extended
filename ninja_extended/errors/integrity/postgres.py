@@ -10,7 +10,7 @@ class PostgresUniqueConstraintIntegrityErrorParser:
     """Parser for unique constraint error for Postgres."""
 
     pattern: Pattern[str] = (
-        'duplicate key value violates unique constraint "(?P<constraint_name>.*)"\\nDETAIL:\s*Key \((?P<columns_string>.*)\)=\((?P<values_string>.*)\) already exists.\\n'  # noqa: Q003, W605
+        'duplicate key value violates unique constraint "(?P<constraint_name>.*)"\\nDETAIL:\s*Key \((?P<columns_string>.*)\)=\((?P<values_string>.*)\) already exists.\\n'  # noqa: W605
     )
 
     def parse(self, error: IntegrityError) -> list[str]:
@@ -59,7 +59,7 @@ class PostgresNotNullIntegrityErrorParser:
     """Parser for not null error for Postgres."""
 
     pattern: Pattern[str] = (
-        'null value in column "(?P<column_string>.*)" of relation "(?P<relation_name>.*)" violates not-null constraint\\nDETAIL:\s*Failing row contains \((?P<values_string>.*)\).\\n'
+        'null value in column "(?P<column_string>.*)" of relation "(?P<relation_name>.*)" violates not-null constraint\\nDETAIL:\s*Failing row contains \((?P<values_string>.*)\).\\n'  # noqa: W605
     )
 
     def parse(self, error: IntegrityError) -> list[str]:
