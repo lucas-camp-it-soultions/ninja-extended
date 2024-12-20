@@ -21,7 +21,7 @@ class UniqueConstraintError(APIError):
 
     def __init__(
         self,
-        fields: dict[str, bool | Decimal | float | int | str],
+        fields: dict[str, bool | Decimal | float | int | str | None],
     ):
         """Initialize an UniqueConstraintError."""
 
@@ -75,7 +75,7 @@ class UniqueConstraintError(APIError):
                 ),
             ),
             fields=(
-                dict[str, bool | Decimal | float | int | str],
+                dict[str, bool | Decimal | float | int | str | None],
                 Field(description=f"The fields of the {model_name}."),
             ),
             path=(

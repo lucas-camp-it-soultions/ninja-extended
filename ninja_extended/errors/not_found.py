@@ -21,7 +21,7 @@ class NotFoundError(APIError):
 
     def __init__(
         self,
-        fields: dict[str, bool | Decimal | float | int | str],
+        fields: dict[str, bool | Decimal | float | int | str | None],
     ):
         """Initialize a NotFoundError."""
 
@@ -73,7 +73,7 @@ class NotFoundError(APIError):
                 Field(description=f"The detail of the {model_name}."),
             ),
             fields=(
-                dict[str, bool | Decimal | float | int | str],
+                dict[str, bool | Decimal | float | int | str | None],
                 Field(description=f"The fields of the {model_name}."),
             ),
             path=(
