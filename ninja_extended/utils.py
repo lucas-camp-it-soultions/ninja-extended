@@ -68,6 +68,9 @@ def convert_value_to_detail_string(value: bool | Decimal | float | int | str) ->
         str: The string representation value.
     """
 
+    if value is None:
+        return "null"
+
     if value is True:
         return "true"
 
