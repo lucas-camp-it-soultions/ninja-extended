@@ -98,7 +98,6 @@ def create_resource(request: HttpRequest, data: ResourceCreateRequest):  # noqa:
         try:
             return 201, Resource.objects.create(**data.model_dump())
         except IntegrityError as error:
-            print("INSIDE ERROR HANDLER")
             type, columns = IntegrityErrorParser().parse(error=error)
 
             if type == IntegrityErrorType.UNIQUE_CONSTRAINT:
