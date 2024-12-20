@@ -57,7 +57,6 @@ def test_unique_constraint_single_postgres_unique_constraint(resource_data, reso
 
     with pytest.raises(IntegrityError) as error:
         Resource.objects.using("postgres").create(**resource_data_unique_single)
-    breakpoint()
     assert PostgresUniqueConstraintIntegrityErrorParser().parse(error=error.value) == (
         IntegrityErrorType.UNIQUE_CONSTRAINT,
         ["value_unique"],
