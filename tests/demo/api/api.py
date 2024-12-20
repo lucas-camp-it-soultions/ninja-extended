@@ -1,13 +1,25 @@
+from typing import Annotated
+
 from django.db import IntegrityError
 from django.db.transaction import atomic
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponse
 from ninja import Schema
+from ninja.errors import ValidationError as NinjaValidationError
+from pydantic import Field
 
 from ninja_extended.api import ExtendedNinjaAPI, ExtendedRouter
-from ninja_extended.errors import NotNullConstraintError, UniqueConstraintError
+from ninja_extended.errors import (
+    APIError,
+    NotNullConstraintError,
+    UniqueConstraintError,
+    ValidationError,
+    register_exception_handler,
+)
 from ninja_extended.errors.integrity import IntegrityErrorParser
 from ninja_extended.errors.integrity.types import IntegrityErrorType
+from ninja_extended.errors.validation import discriminate_validation_errors, validation_error_factory
 from ninja_extended.fields import IntField, IntFieldValues, StringField, StringFieldValues
+from ninja_extended.utils import camel_to_pascal
 
 from .models import Resource
 
@@ -17,7 +29,7 @@ router = ExtendedRouter()
 
 class ResourceFieldValues:
     id = IntFieldValues(description="The id of the resource.")
-    value_unique = StringFieldValues(description="The value_unique of the resource")
+    value_unique = StringFieldValues(description="The value_unique of the resource", min_length=3)
     value_unique_together_1 = StringFieldValues(description="The value_unique_together_1 of the resource")
     value_unique_together_2 = StringFieldValues(description="The value_unique_together_2 of the resource")
     value_not_null = StringFieldValues(description="The value_not_null of the resource")
@@ -46,21 +58,25 @@ class ResourceNotNullConstraintError(NotNullConstraintError):
     resource_name = "Resource"
 
 
-@api.exception_handler(ResourceUniqueConstraintError)
-def resource_unique_constraint_error_handler(request: HttpRequest, error: ResourceUniqueConstraintError):
-    return api.create_response(
-        request=request,
-        data=ResourceUniqueConstraintError.schema()(**error.to_dict(), path=request.path, operation_id=request.operation_id),
-        status=ResourceUniqueConstraintError.status,
-    )
+register_exception_handler(api=api, error_type=ResourceUniqueConstraintError)
+register_exception_handler(api=api, error_type=ResourceNotNullConstraintError)
 
 
-@api.exception_handler(ResourceNotNullConstraintError)
-def resource_not_null_constraint_error_handler(request: HttpRequest, error: ResourceNotNullConstraintError):
+@api.exception_handler(NinjaValidationError)
+def validation_errors(request, exc):
+    class TestValidationError(ValidationError):
+        operation_id = request.operation_id
+
+    DerivedValidationError = type("DerivedValidationError", (ValidationError,), {"operation_id": request.operation_id})
+
+    errors = exc.errors
+
+    error = DerivedValidationError(errors=errors)
+
     return api.create_response(
         request=request,
-        data=ResourceNotNullConstraintError.schema()(**error.to_dict(), path=request.path, operation_id=request.operation_id),
-        status=ResourceNotNullConstraintError.status,
+        data=error.schema()(**error.to_dict(), path=request.path, operation_id=request.operation_id),
+        status=ValidationError.status,
     )
 
 
@@ -72,7 +88,9 @@ def resource_not_null_constraint_error_handler(request: HttpRequest, error: Reso
     tags=["resources"],
     response={
         201: ResourceResponse,
-        422: ResourceNotNullConstraintError.schema() | ResourceUniqueConstraintError.schema(),
+        422: discriminate_validation_errors(
+            [ResourceNotNullConstraintError, ResourceUniqueConstraintError, validation_error_factory("createResource")]
+        ),
     },
 )
 def create_resource(request: HttpRequest, data: ResourceCreateRequest):  # noqa: ARG001
