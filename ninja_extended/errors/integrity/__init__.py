@@ -2,7 +2,7 @@
 
 # ruff: noqa: F401
 
-from ninja_extended.errors.integrity.base import IntegrityErrorParser
+from ninja_extended.errors.integrity.base import IntegrityErrorParser, handle_integrity_error
 from ninja_extended.errors.integrity.postgres import (
     PostgresIntegrityErrorParser,
     PostgresNotNullIntegrityErrorParser,
