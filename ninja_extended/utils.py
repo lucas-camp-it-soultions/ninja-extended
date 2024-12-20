@@ -4,6 +4,25 @@ import re
 from decimal import Decimal
 
 
+def camel_to_pascal(value: str) -> str:
+    """Convert a camel case string to a pascal case.
+
+    Args:
+        value (str): The string in camel case.
+
+    Returns:
+        str: The string in pascal case.
+    """
+
+    if len(value) == 0:
+        return value
+
+    if len(value) == 1:
+        return value.title()
+
+    return f"{value[0].title()}{value[1:]}"
+
+
 def camel_to_kebap(value: str) -> str:
     """Convert a camel case string to a kebap case string.
 
@@ -55,7 +74,7 @@ def pluralize(value: str) -> str:
     return f"{value}s"
 
 
-def convert_value_to_detail_string(value: bool | Decimal | float | int | str) -> str:  # noqa: PYI041
+def convert_value_to_detail_string(value: bool | Decimal | float | int | str) -> str:  # noqa: PLR0911, PYI041
     """Convert a value into a string representation.
 
     Args:

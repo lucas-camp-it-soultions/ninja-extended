@@ -2,7 +2,13 @@ from decimal import Decimal
 
 import pytest
 
-from ninja_extended.utils import camel_to_kebap, convert_value_to_detail_string, pluralize, snake_to_camel
+from ninja_extended.utils import (
+    camel_to_kebap,
+    camel_to_pascal,
+    convert_value_to_detail_string,
+    pluralize,
+    snake_to_camel,
+)
 
 
 @pytest.mark.parametrize(
@@ -17,6 +23,20 @@ from ninja_extended.utils import camel_to_kebap, convert_value_to_detail_string,
 )
 def test_camel_to_kebap(camel_string: str, kebap_string: str):
     assert camel_to_kebap(value=camel_string) == kebap_string
+
+
+@pytest.mark.parametrize(
+    ("camel_string", "pascal_string"),
+    [
+        ("", ""),
+        ("f", "F"),
+        ("foobar", "Foobar"),
+        ("fooBar", "FooBar"),
+        ("fooBarBaz", "FooBarBaz"),
+    ],
+)
+def test_camel_to_pascal(camel_string: str, pascal_string: str):
+    assert camel_to_pascal(value=camel_string) == pascal_string
 
 
 @pytest.mark.parametrize(
