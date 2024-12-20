@@ -1,25 +1,19 @@
-from typing import Annotated
-
 from django.db import IntegrityError
 from django.db.transaction import atomic
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest
 from ninja import Schema
 from ninja.errors import ValidationError as NinjaValidationError
-from pydantic import Field
 
 from ninja_extended.api import ExtendedNinjaAPI, ExtendedRouter
 from ninja_extended.errors import (
-    APIError,
     NotNullConstraintError,
     UniqueConstraintError,
     ValidationError,
     register_exception_handler,
 )
-from ninja_extended.errors.integrity import IntegrityErrorParser
-from ninja_extended.errors.integrity.types import IntegrityErrorType
+from ninja_extended.errors.integrity import handle_integrity_error
 from ninja_extended.errors.validation import discriminate_validation_errors, validation_error_factory
 from ninja_extended.fields import IntField, IntFieldValues, StringField, StringFieldValues
-from ninja_extended.utils import camel_to_pascal
 
 from .models import Resource
 
@@ -98,13 +92,12 @@ def create_resource(request: HttpRequest, data: ResourceCreateRequest):  # noqa:
         try:
             return 201, Resource.objects.create(**data.model_dump())
         except IntegrityError as error:
-            type, columns = IntegrityErrorParser().parse(error=error)
-
-            if type == IntegrityErrorType.UNIQUE_CONSTRAINT:
-                raise ResourceUniqueConstraintError({key: data.model_dump()[key] for key in columns})
-
-            if type == IntegrityErrorType.NOT_NULL_CONSTRAINT:
-                raise ResourceNotNullConstraintError({key: data.model_dump()[key] for key in columns})
+            handle_integrity_error(
+                error=error,
+                unique_constraint_error_type=ResourceUniqueConstraintError,
+                not_null_constraint_error_type=ResourceNotNullConstraintError,
+                data=data,
+            )
 
 
 api.add_router("", router)
