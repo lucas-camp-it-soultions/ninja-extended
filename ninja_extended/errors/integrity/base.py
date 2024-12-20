@@ -7,12 +7,13 @@ from psycopg2.errors import NotNullViolation, UniqueViolation
 
 from ninja_extended.errors.integrity.postgres import PostgresIntegrityErrorParser
 from ninja_extended.errors.integrity.sqlite3 import SQLite3IntegrityErrorParser
+from ninja_extended.errors.integrity.types import IntegrityErrorType
 
 
 class IntegrityErrorParser:
     """Parser for integrity error for SQLite3."""
 
-    def parse(self, error: IntegrityError) -> list[str]:
+    def parse(self, error: IntegrityError) -> tuple[IntegrityErrorType, list[str]]:
         """Parse IntegrityError.
 
         Args:

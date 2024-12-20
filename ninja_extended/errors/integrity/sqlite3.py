@@ -5,13 +5,15 @@ from re import Pattern
 
 from django.db import IntegrityError
 
+from ninja_extended.errors.integrity.types import IntegrityErrorType
+
 
 class SQLite3UniqueConstraintIntegrityErrorParser:
     """Parser for unique constraint error for SQLite3."""
 
     pattern: Pattern[str] = r"UNIQUE constraint failed: (?P<columns_string>.*)"
 
-    def parse(self, error: IntegrityError) -> list[str]:
+    def parse(self, error: IntegrityError) -> tuple[IntegrityErrorType, list[str]]:
         """Parse IntegrityError.
 
         Args:
@@ -21,7 +23,7 @@ class SQLite3UniqueConstraintIntegrityErrorParser:
             RuntimeError: If the error can not be parsed.
 
         Returns:
-            list[str]: The column names violating the unique constraint.
+           tuple[IntegrityErrorType, list[str]]: The column names violating the unique constraint.
         """
 
         parse_error_message_multiple_args = (
@@ -35,7 +37,7 @@ class SQLite3UniqueConstraintIntegrityErrorParser:
             raise RuntimeError(parse_error_message_multiple_args)
 
         arg = error.args[0]
-        column_names: list[str] = []
+        column_names: tuple[IntegrityErrorType, list[str]] = []
 
         match = re.match(pattern=self.pattern, string=arg)
 
@@ -60,7 +62,7 @@ class SQLite3UniqueConstraintIntegrityErrorParser:
 
             column_names.append(split_column[1])
 
-        return column_names
+        return IntegrityErrorType.UNIQUE_CONSTRAINT, column_names
 
 
 class SQLite3NotNullIntegrityErrorParser:
@@ -68,7 +70,7 @@ class SQLite3NotNullIntegrityErrorParser:
 
     pattern: Pattern[str] = r"NOT NULL constraint failed: (?P<column_string>.*)"
 
-    def parse(self, error: IntegrityError) -> list[str]:
+    def parse(self, error: IntegrityError) -> tuple[IntegrityErrorType, list[str]]:
         """Parse IntegrityError.
 
         Args:
@@ -78,7 +80,7 @@ class SQLite3NotNullIntegrityErrorParser:
             RuntimeError: If the error can not be parsed.
 
         Returns:
-            list[str]: The column name violating the not null constraint.
+           tuple[IntegrityErrorType, list[str]]: The column name violating the not null constraint.
         """
 
         parse_error_message_multiple_args = (
@@ -108,13 +110,13 @@ class SQLite3NotNullIntegrityErrorParser:
         if len(split_column) != 2:  # noqa: PLR2004
             raise RuntimeError(parse_error_message_column_not_parsable)
 
-        return [split_column[1]]
+        return IntegrityErrorType.NOT_NULL_CONSTRAINT, [split_column[1]]
 
 
 class SQLite3IntegrityErrorParser:
     """Parser for integrity error for SQLite3."""
 
-    def parse(self, error: IntegrityError) -> list[str]:
+    def parse(self, error: IntegrityError) -> tuple[IntegrityErrorType, list[str]]:
         """Parse IntegrityError.
 
         Args:
@@ -124,7 +126,7 @@ class SQLite3IntegrityErrorParser:
             RuntimeError: If the error can not be parsed.
 
         Returns:
-            list[str]: The column name violating the constraint.
+           tuple[IntegrityErrorType, list[str]]: The column name violating the constraint.
         """
 
         parse_error_message_multiple_args = (

@@ -5,6 +5,8 @@ from re import Pattern
 
 from django.db import IntegrityError
 
+from ninja_extended.errors.integrity.types import IntegrityErrorType
+
 
 class PostgresUniqueConstraintIntegrityErrorParser:
     """Parser for unique constraint error for Postgres."""
@@ -13,7 +15,7 @@ class PostgresUniqueConstraintIntegrityErrorParser:
         'duplicate key value violates unique constraint "(?P<constraint_name>.*)"\\nDETAIL:\s*Key \((?P<columns_string>.*)\)=\((?P<values_string>.*)\) already exists.\\n'  # noqa: W605
     )
 
-    def parse(self, error: IntegrityError) -> list[str]:
+    def parse(self, error: IntegrityError) -> tuple[IntegrityErrorType, list[str]]:
         """Parse IntegrityError.
 
         Args:
@@ -23,7 +25,7 @@ class PostgresUniqueConstraintIntegrityErrorParser:
             RuntimeError: If the error can not be parsed.
 
         Returns:
-            list[str]: The column names violating the unique constraint.
+           tuple[IntegrityErrorType, list[str]]: The column names violating the unique constraint.
         """
 
         parse_error_message_multiple_args = (
@@ -52,7 +54,7 @@ class PostgresUniqueConstraintIntegrityErrorParser:
         if len(columns) == 0:
             raise RuntimeError(parse_error_message_multiple_no_columns_detected)
 
-        return columns
+        return IntegrityErrorType.UNIQUE_CONSTRAINT, columns
 
 
 class PostgresNotNullIntegrityErrorParser:
@@ -62,7 +64,7 @@ class PostgresNotNullIntegrityErrorParser:
         'null value in column "(?P<column_string>.*)" of relation "(?P<relation_name>.*)" violates not-null constraint\\nDETAIL:\s*Failing row contains \((?P<values_string>.*)\).\\n'  # noqa: W605
     )
 
-    def parse(self, error: IntegrityError) -> list[str]:
+    def parse(self, error: IntegrityError) -> tuple[IntegrityErrorType, list[str]]:
         """Parse IntegrityError.
 
         Args:
@@ -72,7 +74,7 @@ class PostgresNotNullIntegrityErrorParser:
             RuntimeError: If the error can not be parsed.
 
         Returns:
-            list[str]: The column name violating the not null constraint.
+           tuple[IntegrityErrorType, list[str]]: The column name violating the not null constraint.
         """
 
         parse_error_message_multiple_args = (
@@ -96,13 +98,13 @@ class PostgresNotNullIntegrityErrorParser:
         except IndexError:
             raise RuntimeError(parse_error_message_no_columns_detected)  # noqa: B904
 
-        return [column_string]
+        return IntegrityErrorType.NOT_NULL_CONSTRAINT, [column_string]
 
 
 class PostgresIntegrityErrorParser:
     """Parser for integrity error for Postgres."""
 
-    def parse(self, error: IntegrityError) -> list[str]:
+    def parse(self, error: IntegrityError) -> tuple[IntegrityErrorType, list[str]]:
         """Parse IntegrityError.
 
         Args:
@@ -112,7 +114,7 @@ class PostgresIntegrityErrorParser:
             RuntimeError: If the error can not be parsed.
 
         Returns:
-            list[str]: The column name violating the constraint.
+           tuple[IntegrityErrorType, list[str]]: The column name violating the constraint.
         """
 
         parse_error_message_multiple_args = (
