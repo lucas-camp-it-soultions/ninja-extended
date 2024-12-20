@@ -85,7 +85,7 @@ class UniqueConstraintError(APIError):
             operation_id=(
                 str,
                 Field(
-                    description=f"The operation_id of the {model_name}.",
+                    description=f"The operation id of the {model_name}.",
                 ),
             ),
         )

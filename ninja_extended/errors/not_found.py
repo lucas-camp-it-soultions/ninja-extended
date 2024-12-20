@@ -82,6 +82,6 @@ class NotFoundError(APIError):
             ),
             operation_id=(
                 str,
-                Field(description=f"The operation_id of the {model_name}."),
+                Field(description=f"The operation id of the {model_name}."),
             ),
         )
