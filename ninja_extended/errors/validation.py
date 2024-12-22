@@ -14,7 +14,7 @@ class ValidationErrorDetail(BaseModel):
     type: str
     loc: tuple[str | int, ...]
     msg: str
-    ctx: dict[str, Any] | None
+    ctx: dict[str, Any] | None = Field(default=None)
 
 
 class ValidationError(APIError):

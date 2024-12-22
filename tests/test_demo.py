@@ -1,5 +1,6 @@
 import pytest
 from api.api import api
+from api.models import Resource
 from ninja.testing import TestClient
 
 test_client = TestClient(api)
@@ -57,8 +58,8 @@ def resource_data_invalid():
 
 @pytest.mark.django_db
 def test_unique_constraint_single(resource_data, resource_data_unique_single):
-    test_client.post(path="/resources", json=resource_data)
-    response = test_client.post(path="/resources", json=resource_data_unique_single)
+    test_client.post(path="/resources/", json=resource_data)
+    response = test_client.post(path="/resources/", json=resource_data_unique_single)
 
     assert response.status_code == 422
     assert response.data == {
@@ -69,15 +70,15 @@ def test_unique_constraint_single(resource_data, resource_data_unique_single):
         "fields": {
             "value_unique": "value",
         },
-        "path": "/resources",
+        "path": "/resources/",
         "operation_id": "createResource",
     }
 
 
 @pytest.mark.django_db
 def test_unique_constraint_multiple(resource_data, resource_data_unique_multiple):
-    test_client.post(path="/resources", json=resource_data)
-    response = test_client.post(path="/resources", json=resource_data_unique_multiple)
+    test_client.post(path="/resources/", json=resource_data)
+    response = test_client.post(path="/resources/", json=resource_data_unique_multiple)
 
     assert response.status_code == 422
     assert response.data == {
@@ -89,14 +90,14 @@ def test_unique_constraint_multiple(resource_data, resource_data_unique_multiple
             "value_unique_together_1": "value",
             "value_unique_together_2": "value",
         },
-        "path": "/resources",
+        "path": "/resources/",
         "operation_id": "createResource",
     }
 
 
 @pytest.mark.django_db
 def test_not_null_constraint(resource_data_not_null):
-    response = test_client.post(path="/resources", json=resource_data_not_null)
+    response = test_client.post(path="/resources/", json=resource_data_not_null)
 
     assert response.status_code == 422
     assert response.data == {
@@ -107,14 +108,14 @@ def test_not_null_constraint(resource_data_not_null):
         "fields": {
             "value_not_null": None,
         },
-        "path": "/resources",
+        "path": "/resources/",
         "operation_id": "createResource",
     }
 
 
 @pytest.mark.django_db
 def test_validation(resource_data_invalid):
-    response = test_client.post(path="/resources", json=resource_data_invalid)
+    response = test_client.post(path="/resources/", json=resource_data_invalid)
 
     assert response.status_code == 422
     assert response.data == {
@@ -132,6 +133,155 @@ def test_validation(resource_data_invalid):
                 },
             },
         ],
-        "path": "/resources",
+        "path": "/resources/",
         "operation_id": "createResource",
+    }
+
+
+@pytest.mark.django_db(transaction=True, reset_sequences=True)
+def test_pagination():
+    for i in range(10):
+        value = f"value_{i}"
+        Resource.objects.create(
+            value_unique=value, value_unique_together_1=value, value_unique_together_2=value, value_not_null=value
+        )
+
+    response = test_client.get(path="/resources/paginated")
+
+    assert response.status_code == 200
+    assert response.data == {
+        "count": 10,
+        "pages": 1,
+        "current_page": 1,
+        "previous_page": None,
+        "next_page": None,
+        "previous_url": None,
+        "next_url": None,
+        "items": [
+            {
+                "id": i + 1,
+                "value_unique": f"value_{i}",
+                "value_unique_together_1": f"value_{i}",
+                "value_unique_together_2": f"value_{i}",
+                "value_not_null": f"value_{i}",
+            }
+            for i in range(10)
+        ],
+    }
+
+    # Pagesize 3; Page 1
+    response = test_client.get(path="/resources/paginated?page_size=3&page=1")
+
+    assert response.status_code == 200
+    assert response.data == {
+        "count": 10,
+        "pages": 4,
+        "current_page": 1,
+        "previous_page": None,
+        "next_page": 2,
+        "previous_url": None,
+        "next_url": "http://testlocation/resources/paginated?page_size=3&page=2",
+        "items": [
+            {
+                "id": i + 1,
+                "value_unique": f"value_{i}",
+                "value_unique_together_1": f"value_{i}",
+                "value_unique_together_2": f"value_{i}",
+                "value_not_null": f"value_{i}",
+            }
+            for i in range(3)
+        ],
+    }
+
+    # Pagesize 3; Page 2
+    response = test_client.get(path="/resources/paginated?page_size=3&page=2")
+
+    assert response.status_code == 200
+    assert response.data == {
+        "count": 10,
+        "pages": 4,
+        "current_page": 2,
+        "previous_page": 1,
+        "next_page": 3,
+        "previous_url": "http://testlocation/resources/paginated?page_size=3&page=1",
+        "next_url": "http://testlocation/resources/paginated?page_size=3&page=3",
+        "items": [
+            {
+                "id": i + 1,
+                "value_unique": f"value_{i}",
+                "value_unique_together_1": f"value_{i}",
+                "value_unique_together_2": f"value_{i}",
+                "value_not_null": f"value_{i}",
+            }
+            for i in range(3, 6)
+        ],
+    }
+
+    # Pagesize 3; Page 3
+    response = test_client.get(path="/resources/paginated?page_size=3&page=3")
+
+    assert response.status_code == 200
+    assert response.data == {
+        "count": 10,
+        "pages": 4,
+        "current_page": 3,
+        "previous_page": 2,
+        "next_page": 4,
+        "previous_url": "http://testlocation/resources/paginated?page_size=3&page=2",
+        "next_url": "http://testlocation/resources/paginated?page_size=3&page=4",
+        "items": [
+            {
+                "id": i + 1,
+                "value_unique": f"value_{i}",
+                "value_unique_together_1": f"value_{i}",
+                "value_unique_together_2": f"value_{i}",
+                "value_not_null": f"value_{i}",
+            }
+            for i in range(6, 9)
+        ],
+    }
+
+    # Pagesize 3; Page 4
+    response = test_client.get(path="/resources/paginated?page_size=3&page=4")
+
+    assert response.status_code == 200
+    assert response.data == {
+        "count": 10,
+        "pages": 4,
+        "current_page": 4,
+        "previous_page": 3,
+        "next_page": None,
+        "previous_url": "http://testlocation/resources/paginated?page_size=3&page=3",
+        "next_url": None,
+        "items": [
+            {
+                "id": i + 1,
+                "value_unique": f"value_{i}",
+                "value_unique_together_1": f"value_{i}",
+                "value_unique_together_2": f"value_{i}",
+                "value_not_null": f"value_{i}",
+            }
+            for i in range(9, 10)
+        ],
+    }
+
+    # Pagesize 3; Page 5
+    response = test_client.get(path="/resources/paginated?page_size=3&page=5")
+
+    assert response.status_code == 422
+    assert response.data == {
+        "type": "errors/list-resources-paginated/validation",
+        "status": 422,
+        "title": "Validation for operation listResourcesPaginated failed.",
+        "detail": "Validation for operation listResourcesPaginated failed.",
+        "errors": [
+            {
+                "type": "less_than_equal",
+                "loc": ["query", "page"],
+                "msg": "Input should be less than or equal to 4",
+                "ctx": {"le": 4},
+            },
+        ],
+        "path": "/resources/paginated?page_size=3&page=5",
+        "operation_id": "listResourcesPaginated",
     }

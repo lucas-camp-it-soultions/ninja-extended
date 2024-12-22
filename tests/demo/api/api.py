@@ -3,6 +3,7 @@ from django.db.transaction import atomic
 from django.http import HttpRequest
 from ninja import Schema
 from ninja.errors import ValidationError as NinjaValidationError
+from ninja.pagination import paginate
 
 from ninja_extended.api import ExtendedNinjaAPI, ExtendedRouter
 from ninja_extended.errors import (
@@ -14,6 +15,7 @@ from ninja_extended.errors import (
 from ninja_extended.errors.integrity import handle_integrity_error
 from ninja_extended.errors.validation import discriminate_validation_errors, validation_error_factory
 from ninja_extended.fields import IntField, IntFieldValues, StringField, StringFieldValues
+from ninja_extended.pagination import PageNumberPageSizePagination
 
 from .models import Resource
 
@@ -74,8 +76,39 @@ def validation_errors(request, exc):
     )
 
 
+@router.get(
+    path="/",
+    operation_id="listResources",
+    summary="List all resources",
+    description="List all resources",
+    tags=["resources"],
+    response={
+        200: list[ResourceResponse],
+    },
+)
+def create_resource(request: HttpRequest):  # noqa: ARG001
+    with atomic():
+        return Resource.objects.all()
+
+
+@router.get(
+    path="/paginated",
+    operation_id="listResourcesPaginated",
+    summary="List all resources with pagination",
+    description="List all resources with pagination",
+    tags=["resources"],
+    response={
+        200: list[ResourceResponse],
+    },
+)
+@paginate(PageNumberPageSizePagination)
+def create_resource(request: HttpRequest):  # noqa: ARG001
+    with atomic():
+        return Resource.objects.all()
+
+
 @router.post(
-    path="/resources",
+    path="/",
     operation_id="createResource",
     summary="Create a resource",
     description="Create a resource",
@@ -100,4 +133,4 @@ def create_resource(request: HttpRequest, data: ResourceCreateRequest):  # noqa:
             )
 
 
-api.add_router("", router)
+api.add_router("resources", router)
