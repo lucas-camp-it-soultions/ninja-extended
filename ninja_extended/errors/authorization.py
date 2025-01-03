@@ -15,23 +15,23 @@ class AuthorizationError(APIError):
 
     def __init__(
         self,
-        operation: str,
+        permissions: list[str],
     ):
         """Initialize a AuthorizationError."""
 
         error_type = "errors/auth/authorization"
         title = "Unsufficient permissions for the operation."
-        detail = f"Unsufficient permissions for the operation '{operation}'."
+        detail = f"Unsufficient permissions for the operation. Permissions {permissions} are needed."
 
         super().__init__(type=error_type, title=title, detail=detail)
 
-        self.operation=operation
+        self.permissions = permissions
 
     def to_dict(self):
         """Serialize the AuthorizationError."""
 
         base_dict = super().to_dict()
-        base_dict.update({"operation": self.operation})
+        base_dict.update({"permissions": self.permissions})
 
         return base_dict
 
@@ -65,8 +65,8 @@ class AuthorizationError(APIError):
                 str,
                 Field(description=f"The detail of the {model_name}."),
             ),
-            operation=(
-                str,
+            permissions=(
+                list[str],
                 Field(description=f"The operation of the {model_name}."),
             ),
             path=(
