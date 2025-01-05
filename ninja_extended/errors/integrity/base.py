@@ -66,3 +66,5 @@ def handle_integrity_error(
 
     if integrity_error_type == IntegrityErrorType.NOT_NULL_CONSTRAINT:
         raise not_null_constraint_error_type({key: data.model_dump()[key] for key in columns})
+
+    raise error
