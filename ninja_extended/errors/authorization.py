@@ -21,7 +21,7 @@ class AuthorizationError(APIError):
 
         error_type = "errors/auth/authorization"
         title = "Unsufficient permissions for the operation."
-        detail = f"Unsufficient permissions for the operation. Permissions {permissions} are needed."
+        detail = f"Unsufficient permissions for the operation. Permissions {permissions} are required."
 
         super().__init__(type=error_type, title=title, detail=detail)
 

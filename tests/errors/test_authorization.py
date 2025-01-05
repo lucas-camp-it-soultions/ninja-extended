@@ -13,7 +13,7 @@ def test_authentication_error():
     assert model.title == "Unsufficient permissions for the operation."
     assert (
         model.detail
-        == "Unsufficient permissions for the operation. Permissions ['app.add_resource', 'app.delete_resource'] are needed."
+        == "Unsufficient permissions for the operation. Permissions ['app.add_resource', 'app.delete_resource'] are required."
     )
     assert model.status == 403
     assert model.permissions == ["app.add_resource", "app.delete_resource"]
