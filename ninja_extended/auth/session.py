@@ -30,9 +30,9 @@ class SessionAuth(APIKeyCookie):
             if request.user.has_perms(self.permissions):
                 return request.user
 
-            return AuthorizationError(permissions=self.permissions)
+            raise AuthorizationError(permissions=self.permissions)
 
-        return AuthenticationError
+        raise AuthenticationError
 
 
 def session_auth(permissions: list[str] | None = None):
