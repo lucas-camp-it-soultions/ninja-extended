@@ -4,6 +4,7 @@ from sqlite3 import IntegrityError as SQLite3IntegrityError
 from typing import Any
 
 from django.db import IntegrityError
+from ninja import Schema
 from psycopg2.errors import NotNullViolation, UniqueViolation
 
 from ninja_extended.errors.integrity.postgres import PostgresIntegrityErrorParser
@@ -59,12 +60,22 @@ def handle_integrity_error(
         not_null_constraint_error_type: If a not null constraint error have been parsed.
     """
 
+    invalid_data_type_error_message = f"Invalid data type '{type(data)}'. Must be 'Schema' or 'dict'."
+
     integrity_error_type, columns = IntegrityErrorParser().parse(error=error)
 
     if integrity_error_type == IntegrityErrorType.UNIQUE_CONSTRAINT:
-        raise unique_constraint_error_type({key: data.model_dump()[key] for key in columns})
+        if isinstance(data, Schema):
+            raise unique_constraint_error_type({key: data.model_dump()[key] for key in columns})
+        if isinstance(data, dict):
+            raise unique_constraint_error_type({key: data[key] for key in columns})
+        raise RuntimeError(invalid_data_type_error_message)
 
     if integrity_error_type == IntegrityErrorType.NOT_NULL_CONSTRAINT:
-        raise not_null_constraint_error_type({key: data.model_dump()[key] for key in columns})
+        if isinstance(data, Schema):
+            raise not_null_constraint_error_type({key: data.model_dump()[key] for key in columns})
+        if isinstance(data, dict):
+            raise not_null_constraint_error_type({key: data[key] for key in columns})
+        raise RuntimeError(invalid_data_type_error_message)
 
     raise error
