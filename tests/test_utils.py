@@ -8,6 +8,7 @@ from ninja_extended.utils import (
     convert_value_to_detail_string,
     pluralize,
     snake_to_camel,
+    snake_to_kebap,
 )
 
 
@@ -23,6 +24,17 @@ from ninja_extended.utils import (
 )
 def test_camel_to_kebap(camel_string: str, kebap_string: str):
     assert camel_to_kebap(value=camel_string) == kebap_string
+
+
+@pytest.mark.parametrize(
+    ("snake_string", "kebap_string"),
+    [
+        ("foobar", "foobar"),
+        ("foo_bar", "foo-bar"),
+    ],
+)
+def test_snake_to_kebap(snake_string: str, kebap_string: str):
+    assert snake_to_kebap(value=snake_string) == kebap_string
 
 
 @pytest.mark.parametrize(

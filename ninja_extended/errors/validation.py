@@ -5,7 +5,7 @@ from typing import Annotated, Any, Literal
 from pydantic import BaseModel, Field, create_model
 
 from ninja_extended.errors.base import APIError
-from ninja_extended.utils import camel_to_kebap, camel_to_pascal
+from ninja_extended.utils import camel_to_pascal, snake_to_camel, snake_to_kebap
 
 
 class ValidationErrorDetail(BaseModel):
@@ -20,13 +20,17 @@ class ValidationErrorDetail(BaseModel):
 class ValidationError(APIError):
     """Base not found error class."""
 
+    router_prefix: str | None = None
     operation_id: str
     status: int = 422
 
     def __init__(self, errors: list[ValidationErrorDetail]):
         """Initialize a ValidationError."""
 
-        error_type = f"errors/{camel_to_kebap(value=self.operation_id)}/validation"
+        if self.router_prefix is not None:
+            error_type = f"errors/{self.router_prefix}/{snake_to_kebap(value=self.operation_id)}/validation"
+        else:
+            error_type = f"errors/{snake_to_kebap(value=self.operation_id)}/validation"
         title = f"Validation for operation {self.operation_id} failed."
         detail = f"Validation for operation {self.operation_id} failed."
 
@@ -50,8 +54,12 @@ class ValidationError(APIError):
             type[BaseModel]: The schema.
         """
 
-        model_name = f"{camel_to_pascal(value=cls.operation_id)}ValidationErrorResponse"
-        error_type = f"errors/{camel_to_kebap(value=cls.operation_id)}/validation"
+        model_name = f"{camel_to_pascal(value=snake_to_camel(value=cls.operation_id))}ValidationErrorResponse"
+
+        if cls.router_prefix is not None:
+            error_type = f"errors/{cls.router_prefix}/{snake_to_kebap(value=cls.operation_id)}/validation"
+        else:
+            error_type = f"errors/{snake_to_kebap(value=cls.operation_id)}/validation"
         title = f"Validation for operation {cls.operation_id} failed."
         detail = f"Validation for operation {cls.operation_id} failed."
 
@@ -88,10 +96,11 @@ class ValidationError(APIError):
         )
 
 
-def validation_error_factory(operation_id: str) -> type[APIError]:
+def validation_error_factory(router_prefix: str | None, operation_id: str) -> type[APIError]:
     """Create a ValidationError dynamically.
 
     Args:
+        router_prefix (str | None): The router prefix.
         operation_id (str): The operation id.
 
     Returns:
@@ -99,7 +108,9 @@ def validation_error_factory(operation_id: str) -> type[APIError]:
     """
 
     return type(
-        f"{camel_to_pascal(value=operation_id)}ValidationError", (ValidationError,), {"operation_id": operation_id}
+        f"{camel_to_pascal(value=snake_to_camel(value=operation_id))}ValidationError",
+        (ValidationError,),
+        {"router_prefix": router_prefix, "operation_id": operation_id},
     )
 
 

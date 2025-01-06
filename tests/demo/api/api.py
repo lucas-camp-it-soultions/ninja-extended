@@ -63,7 +63,21 @@ def validation_errors(request, exc):
     class TestValidationError(ValidationError):
         operation_id = request.operation_id
 
-    DerivedValidationError = type("DerivedValidationError", (ValidationError,), {"operation_id": request.operation_id})
+    if request.path.startswith("/"):
+        router_prefix = request.path.split("/")[1]
+    else:
+        router_prefix = request.path.split("/")[0]
+    if router_prefix == "":
+        router_prefix = None
+
+    DerivedValidationError = type(
+        "DerivedValidationError",
+        (ValidationError,),
+        {
+            "router_prefix": router_prefix,
+            "operation_id": request.operation_id,
+        },
+    )
 
     errors = exc.errors
 
@@ -78,7 +92,7 @@ def validation_errors(request, exc):
 
 @router.get(
     path="/",
-    operation_id="listResources",
+    operation_id="list-resources",
     summary="List all resources",
     description="List all resources",
     tags=["resources"],
@@ -93,7 +107,7 @@ def create_resource(request: HttpRequest):  # noqa: ARG001
 
 @router.get(
     path="/paginated",
-    operation_id="listResourcesPaginated",
+    operation_id="list-resources-paginated",
     summary="List all resources with pagination",
     description="List all resources with pagination",
     tags=["resources"],
@@ -109,14 +123,18 @@ def create_resource(request: HttpRequest):  # noqa: ARG001
 
 @router.post(
     path="/",
-    operation_id="createResource",
+    operation_id="create-resource",
     summary="Create a resource",
     description="Create a resource",
     tags=["resources"],
     response={
         201: ResourceResponse,
         422: discriminate_validation_errors(
-            [ResourceNotNullConstraintError, ResourceUniqueConstraintError, validation_error_factory("createResource")]
+            [
+                ResourceNotNullConstraintError,
+                ResourceUniqueConstraintError,
+                validation_error_factory("resources", "create-resource"),
+            ]
         ),
     },
 )

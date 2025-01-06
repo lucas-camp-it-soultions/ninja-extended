@@ -71,7 +71,7 @@ def test_unique_constraint_single(resource_data, resource_data_unique_single):
             "value_unique": "value",
         },
         "path": "/resources/",
-        "operation_id": "createResource",
+        "operation_id": "create-resource",
     }
 
 
@@ -91,7 +91,7 @@ def test_unique_constraint_multiple(resource_data, resource_data_unique_multiple
             "value_unique_together_2": "value",
         },
         "path": "/resources/",
-        "operation_id": "createResource",
+        "operation_id": "create-resource",
     }
 
 
@@ -109,7 +109,7 @@ def test_not_null_constraint(resource_data_not_null):
             "value_not_null": None,
         },
         "path": "/resources/",
-        "operation_id": "createResource",
+        "operation_id": "create-resource",
     }
 
 
@@ -119,10 +119,10 @@ def test_validation(resource_data_invalid):
 
     assert response.status_code == 422
     assert response.data == {
-        "type": "errors/create-resource/validation",
+        "type": "errors/resources/create-resource/validation",
         "status": 422,
-        "title": "Validation for operation createResource failed.",
-        "detail": "Validation for operation createResource failed.",
+        "title": "Validation for operation create-resource failed.",
+        "detail": "Validation for operation create-resource failed.",
         "errors": [
             {
                 "type": "string_too_short",
@@ -134,7 +134,7 @@ def test_validation(resource_data_invalid):
             },
         ],
         "path": "/resources/",
-        "operation_id": "createResource",
+        "operation_id": "create-resource",
     }
 
 
@@ -270,10 +270,10 @@ def test_pagination():
 
     assert response.status_code == 422
     assert response.data == {
-        "type": "errors/list-resources-paginated/validation",
+        "type": "errors/resources/list-resources-paginated/validation",
         "status": 422,
-        "title": "Validation for operation listResourcesPaginated failed.",
-        "detail": "Validation for operation listResourcesPaginated failed.",
+        "title": "Validation for operation list-resources-paginated failed.",
+        "detail": "Validation for operation list-resources-paginated failed.",
         "errors": [
             {
                 "type": "less_than_equal",
@@ -283,5 +283,5 @@ def test_pagination():
             },
         ],
         "path": "/resources/paginated?page_size=3&page=5",
-        "operation_id": "listResourcesPaginated",
+        "operation_id": "list-resources-paginated",
     }

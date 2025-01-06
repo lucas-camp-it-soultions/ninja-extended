@@ -35,6 +35,18 @@ def camel_to_kebap(value: str) -> str:
     return re.sub(pattern=r"(?<!^)(?=[A-Z])", repl="-", string=value).lower()
 
 
+def snake_to_kebap(value: str) -> str:
+    """Convert a snake case string to a kebap case string.
+
+    Args:
+        value (str): The string in snake case.
+
+    Returns:
+        str: The string in kebap case.
+    """
+    return value.replace("_", "-")
+
+
 def snake_to_camel(value: str) -> str:
     """Convert a snake case string to a camel case string.
 
