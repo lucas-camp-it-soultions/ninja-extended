@@ -10,6 +10,7 @@ from pydantic import Field
 
 from ninja_extended.api import ExtendedNinjaAPI, ExtendedRouter
 from ninja_extended.errors import (
+    CheckConstraintError,
     NotNullConstraintError,
     UniqueConstraintError,
     ValidationError,
@@ -32,6 +33,7 @@ class ResourceFieldValues:
     value_unique_together_1 = StringFieldValues(description="The value_unique_together_1 of the resource")
     value_unique_together_2 = StringFieldValues(description="The value_unique_together_2 of the resource")
     value_not_null = StringFieldValues(description="The value_not_null of the resource")
+    value_check = IntFieldValues(description="The value_check of the resource")
 
 
 class ResourceCreateRequest(Schema):
@@ -39,6 +41,7 @@ class ResourceCreateRequest(Schema):
     value_unique_together_1: str = StringField(field_values=ResourceFieldValues.value_unique_together_1)
     value_unique_together_2: str = StringField(field_values=ResourceFieldValues.value_unique_together_2)
     value_not_null: str | None = StringField(field_values=ResourceFieldValues.value_not_null)
+    value_check: int | None = IntField(field_values=ResourceFieldValues.value_check)
 
 
 class ResourceResponse(Schema):
@@ -47,6 +50,7 @@ class ResourceResponse(Schema):
     value_unique_together_1: str = StringField(field_values=ResourceFieldValues.value_unique_together_1)
     value_unique_together_2: str = StringField(field_values=ResourceFieldValues.value_unique_together_2)
     value_not_null: str | None = StringField(field_values=ResourceFieldValues.value_not_null)
+    value_check: int | None = IntField(field_values=ResourceFieldValues.value_check)
 
 
 class ResourceUniqueConstraintError(UniqueConstraintError):
@@ -57,9 +61,14 @@ class ResourceNotNullConstraintError(NotNullConstraintError):
     resource = "Resource"
 
 
+class ResourceCheckConstraintError(CheckConstraintError):
+    resource = "Resource"
+
+
 register_validation_error_handler(api=api)
 register_error_handler(api=api, error_type=ResourceUniqueConstraintError)
 register_error_handler(api=api, error_type=ResourceNotNullConstraintError)
+register_error_handler(api=api, error_type=ResourceCheckConstraintError)
 
 
 @router.get(
@@ -96,7 +105,7 @@ def create_resource(request: HttpRequest):  # noqa: ARG001
     response={
         201: ResourceResponse,
         422: Annotated[
-            ResourceNotNullConstraintError.schema | ResourceUniqueConstraintError.schema | ValidationError.schema,
+            ResourceNotNullConstraintError.schema | ResourceUniqueConstraintError.schema | ValidationError.schema | CheckConstraintError.schema,
             Field(discriminator="type"),
         ],
     },
@@ -110,6 +119,7 @@ def create_resource(request: HttpRequest, data: ResourceCreateRequest):  # noqa:
                 error=error,
                 unique_constraint_error_type=ResourceUniqueConstraintError,
                 not_null_constraint_error_type=ResourceNotNullConstraintError,
+                check_constraint_error_type=ResourceCheckConstraintError,
                 data=data,
             )
 

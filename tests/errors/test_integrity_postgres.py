@@ -42,6 +42,17 @@ def resource_data_unique_multiple():
 
 
 @pytest.fixture
+def resource_data_check():
+    return {
+        "value_unique": "value",
+        "value_unique_together_1": "value",
+        "value_unique_together_2": "value",
+        "value_not_null": "value",
+        "value_check": -1,
+    }
+
+
+@pytest.fixture
 def resource_data_not_null():
     return {
         "value_unique": "value",
@@ -147,4 +158,14 @@ def test_not_null_constraint(resource_data_not_null):
     assert IntegrityErrorParser().parse(error=error.value) == (
         IntegrityErrorType.NOT_NULL_CONSTRAINT,
         ["value_not_null"],
+    )
+
+
+@pytest.mark.django_db(databases=["postgres"])
+def test_check_constraint(resource_data_check):
+    with pytest.raises(IntegrityError) as error:
+        Resource.objects.using("postgres").create(**resource_data_check)
+    assert IntegrityErrorParser().parse(error=error.value) == (
+        IntegrityErrorType.CHECK_CONSTRAINT,
+        ["value_check_gte_0"],
     )

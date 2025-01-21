@@ -5,6 +5,7 @@
 from ninja_extended.errors.authentication import AuthenticationError
 from ninja_extended.errors.authorization import AuthorizationError
 from ninja_extended.errors.base import APIError, APIErrorResponse, register_error_handler
+from ninja_extended.errors.check_constraint import CheckConstraintError
 from ninja_extended.errors.csrf import CSRFError
 from ninja_extended.errors.multiple_objects_returned import MultipleObjectsReturnedError
 from ninja_extended.errors.not_found import NotFoundError

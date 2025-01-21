@@ -113,6 +113,48 @@ class SQLite3NotNullIntegrityErrorParser:
         return IntegrityErrorType.NOT_NULL_CONSTRAINT, [split_column[1]]
 
 
+class SQLite3CheckIntegrityErrorParser:
+    """Parser for check error for SQLite3."""
+
+    pattern: Pattern[str] = r"CHECK constraint failed: (?P<constraint_name>.*)"
+
+    def parse(self, error: IntegrityError) -> tuple[IntegrityErrorType, list[str]]:
+        """Parse IntegrityError.
+
+        Args:
+            error (IntegrityError): The integrity error.
+
+        Raises:
+            RuntimeError: If the error can not be parsed.
+
+        Returns:
+           tuple[IntegrityErrorType, list[str]]: The column name violating the check constraint.
+        """
+
+        parse_error_message_multiple_args = (
+            "Unable to parse Integrity Error. IntegrityError was instantiated with multiple args."
+        )
+        parse_error_message_pattern_not_found = "Unable to parse Integrity Error. Pattern not Found."
+        parse_error_message_no_columns_detected = "Unable to parse Integrity Error. No constraint name detected."
+
+        if len(error.args) != 1:
+            raise RuntimeError(parse_error_message_multiple_args)
+
+        arg = error.args[0]
+
+        match = re.match(pattern=self.pattern, string=arg)
+
+        if match is None:
+            raise RuntimeError(parse_error_message_pattern_not_found)
+
+        try:
+            constraint_name = match.group("constraint_name")
+        except IndexError:
+            raise RuntimeError(parse_error_message_no_columns_detected)  # noqa: B904
+
+        return IntegrityErrorType.CHECK_CONSTRAINT, [constraint_name]
+
+
 class SQLite3IntegrityErrorParser:
     """Parser for integrity error for SQLite3."""
 
@@ -144,5 +186,8 @@ class SQLite3IntegrityErrorParser:
 
         if arg.startswith("UNIQUE constraint failed"):
             return SQLite3UniqueConstraintIntegrityErrorParser().parse(error=error)
+
+        if arg.startswith("CHECK constraint failed"):
+            return SQLite3CheckIntegrityErrorParser().parse(error=error)
 
         raise RuntimeError(parse_error_message_multiple_unknown_error_type)

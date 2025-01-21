@@ -101,6 +101,50 @@ class PostgresNotNullIntegrityErrorParser:
         return IntegrityErrorType.NOT_NULL_CONSTRAINT, [column_string]
 
 
+class PostgresCheckIntegrityErrorParser:
+    """Parser for check error for Postgres."""
+
+    pattern: Pattern[str] = (
+        'new row for relation "(?P<relation_name>.*)" violates check constraint "(?P<constraint_name>.*)"\\nDETAIL:\s*Failing row contains \((?P<values_string>.*)\).\\n'  # noqa: W605
+    )
+
+    def parse(self, error: IntegrityError) -> tuple[IntegrityErrorType, list[str]]:
+        """Parse IntegrityError.
+
+        Args:
+            error (IntegrityError): The integrity error.
+
+        Raises:
+            RuntimeError: If the error can not be parsed.
+
+        Returns:
+           tuple[IntegrityErrorType, list[str]]: The column name violating the check constraint.
+        """
+
+        parse_error_message_multiple_args = (
+            "Unable to parse Integrity Error. IntegrityError was instantiated with multiple args."
+        )
+        parse_error_message_pattern_not_found = "Unable to parse Integrity Error. Pattern not Found."
+        parse_error_message_no_columns_detected = "Unable to parse Integrity Error. No columns detected."
+
+        if len(error.args) != 1:
+            raise RuntimeError(parse_error_message_multiple_args)
+
+        arg = error.args[0]
+
+        match = re.match(pattern=self.pattern, string=arg)
+
+        if match is None:
+            raise RuntimeError(parse_error_message_pattern_not_found)
+
+        try:
+            constraint_name = match.group("constraint_name")
+        except IndexError:
+            raise RuntimeError(parse_error_message_no_columns_detected)  # noqa: B904
+
+        return IntegrityErrorType.CHECK_CONSTRAINT, [constraint_name]
+
+
 class PostgresIntegrityErrorParser:
     """Parser for integrity error for Postgres."""
 
@@ -132,5 +176,8 @@ class PostgresIntegrityErrorParser:
 
         if arg.startswith("duplicate key value violates unique constraint"):
             return PostgresUniqueConstraintIntegrityErrorParser().parse(error=error)
+
+        if "violates check constraint" in arg:
+            return PostgresCheckIntegrityErrorParser().parse(error=error)
 
         raise RuntimeError(parse_error_message_unknown_error_type)
