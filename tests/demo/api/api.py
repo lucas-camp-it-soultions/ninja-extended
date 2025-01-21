@@ -94,7 +94,6 @@ def validation_errors(request, exc):
     path="/",
     operation_id="list-resources",
     summary="List all resources",
-    description="List all resources",
     response={
         200: list[ResourceResponse],
     },
@@ -108,7 +107,6 @@ def create_resource(request: HttpRequest):  # noqa: ARG001
     path="/paginated",
     operation_id="list-resources-paginated",
     summary="List all resources with pagination",
-    description="List all resources with pagination",
     response={
         200: list[ResourceResponse],
     },
@@ -123,7 +121,6 @@ def create_resource(request: HttpRequest):  # noqa: ARG001
     path="/",
     operation_id="create-resource",
     summary="Create a resource",
-    description="Create a resource",
     response={
         201: ResourceResponse,
         422: discriminate_validation_errors(
