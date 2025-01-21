@@ -1,9 +1,12 @@
 """Module errors.base."""
 
+from typing import TYPE_CHECKING
+
 from django.http import HttpRequest
 from pydantic import BaseModel
 
-from ninja_extended.api import ExtendedNinjaAPI
+if TYPE_CHECKING:
+    from ninja_extended.api import ExtendedNinjaAPI
 
 
 class APIErrorResponse(BaseModel):
@@ -37,7 +40,7 @@ class APIError(Exception):
         }
 
 
-def register_error_handler(api: ExtendedNinjaAPI, error_type: type[APIError]):
+def register_error_handler(api: "ExtendedNinjaAPI", error_type: type[APIError]):
     """Register an APIError.
 
     Args:
