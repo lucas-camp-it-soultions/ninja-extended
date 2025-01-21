@@ -1,97 +1,114 @@
-from decimal import Decimal
+from typing import Literal, _AnnotatedAlias
 
-import pytest
+from ninja import Schema
 
-from ninja_extended.utils import (
-    camel_to_kebap,
-    camel_to_pascal,
-    convert_value_to_detail_string,
-    pluralize,
-    snake_to_camel,
-    snake_to_kebap,
-)
+from ninja_extended.api import response_factory
+from ninja_extended.errors import AuthenticationError, AuthorizationError, CSRFError
 
 
-@pytest.mark.parametrize(
-    ("camel_string", "kebap_string"),
-    [
-        ("foobar", "foobar"),
-        ("Foobar", "foobar"),
-        ("fooBar", "foo-bar"),
-        ("FooBar", "foo-bar"),
-        ("FooBarBaz", "foo-bar-baz"),
-    ],
-)
-def test_camel_to_kebap(camel_string: str, kebap_string: str):
-    assert camel_to_kebap(value=camel_string) == kebap_string
+class SchemaA(Schema):
+    type: Literal["a"]
+    value_a: str
 
 
-@pytest.mark.parametrize(
-    ("snake_string", "kebap_string"),
-    [
-        ("foobar", "foobar"),
-        ("foo_bar", "foo-bar"),
-    ],
-)
-def test_snake_to_kebap(snake_string: str, kebap_string: str):
-    assert snake_to_kebap(value=snake_string) == kebap_string
+class SchemaB(Schema):
+    type: Literal["b"]
+    value_b: str
 
 
-@pytest.mark.parametrize(
-    ("camel_string", "pascal_string"),
-    [
-        ("", ""),
-        ("f", "F"),
-        ("foobar", "Foobar"),
-        ("fooBar", "FooBar"),
-        ("fooBarBaz", "FooBarBaz"),
-    ],
-)
-def test_camel_to_pascal(camel_string: str, pascal_string: str):
-    assert camel_to_pascal(value=camel_string) == pascal_string
+def test_response_factory_single_schema():
+    response_dict = response_factory((200, SchemaA))
+
+    assert isinstance(response_dict, dict)
+
+    assert response_dict == {200: SchemaA}
 
 
-@pytest.mark.parametrize(
-    ("snake_string", "camel_string"),
-    [
-        ("foobar", "foobar"),
-        ("foo_bar", "fooBar"),
-        ("foo_bar_baz", "fooBarBaz"),
-    ],
-)
-def test_snake_to_camel(snake_string: str, camel_string: str):
-    assert snake_to_camel(value=snake_string) == camel_string
+def test_response_factory_multiple_schemas_different_status():
+    response_dict = response_factory((200, SchemaA), (201, SchemaB))
+
+    assert isinstance(response_dict, dict)
+
+    assert response_dict == {200: SchemaA, 201: SchemaB}
 
 
-@pytest.mark.parametrize(
-    ("value", "output"),
-    [
-        (True, "true"),
-        (False, "false"),
-        (Decimal("42.21"), "42.21"),
-        (42, "42"),
-        (42.21, "42.21"),
-        ("foo", "'foo'"),
-    ],
-)
-def test_convert_value_to_detail_string(value: bool, output: str):  # noqa: FBT001
-    assert convert_value_to_detail_string(value=value) == output
+def test_response_factory_multiple_schemas_same_status():
+    response_dict = response_factory((200, SchemaA), (200, SchemaB))
+
+    assert isinstance(response_dict, dict)
+    assert len(response_dict) == 1
+
+    assert isinstance(response_dict[200], _AnnotatedAlias)
+    assert len(response_dict[200].__args__) == 1
+    assert len(response_dict[200].__args__[0].__args__) == 2
+    assert response_dict[200].__args__[0].__args__ == (SchemaA, SchemaB)
 
 
-@pytest.mark.parametrize(
-    ("singular", "plural"),
-    [
-        ("couch", "couches"),
-        ("fish", "fishes"),
-        ("fox", "foxes"),
-        ("cross", "crosses"),
-        ("quartz", "quartzes"),
-        ("hero", "heroes"),
-        ("country", "countries"),
-        ("leef", "leeves"),
-        ("life", "lives"),
-        ("apple", "apples"),
-    ],
-)
-def test_pluralize(singular: str, plural: str):
-    assert pluralize(value=singular) == plural
+def test_response_factory_single_error():
+    response_dict = response_factory((401, AuthenticationError))
+
+    assert isinstance(response_dict, dict)
+
+    assert response_dict == {401: AuthenticationError.schema}
+
+
+def test_response_factory_multiple_errors_different_status():
+    response_dict = response_factory((401, AuthenticationError), (403, AuthorizationError))
+
+    assert isinstance(response_dict, dict)
+
+    assert response_dict == {401: AuthenticationError.schema, 403: AuthorizationError.schema}
+
+
+def test_response_factory_multiple_errors_same_status():
+    response_dict = response_factory((403, AuthorizationError), (403, CSRFError))
+
+    assert isinstance(response_dict, dict)
+    assert len(response_dict) == 1
+
+    assert isinstance(response_dict[403], _AnnotatedAlias)
+    assert len(response_dict[403].__args__) == 1
+    assert len(response_dict[403].__args__[0].__args__) == 2
+    assert response_dict[403].__args__[0].__args__ == (AuthorizationError.schema, CSRFError.schema)
+
+
+def test_response_factory_single_schema_multiple_errors():
+    response_dict = response_factory(
+        (200, SchemaA), (401, AuthenticationError), (403, AuthorizationError), (403, CSRFError)
+    )
+
+    assert isinstance(response_dict, dict)
+    assert len(response_dict) == 3
+
+    # 200
+    assert response_dict[200] == SchemaA
+
+    # 401
+    assert response_dict[401] == AuthenticationError.schema
+
+    # 403
+    assert isinstance(response_dict[403], _AnnotatedAlias)
+    assert len(response_dict[403].__args__) == 1
+    assert len(response_dict[403].__args__[0].__args__) == 2
+    assert response_dict[403].__args__[0].__args__ == (AuthorizationError.schema, CSRFError.schema)
+
+
+def test_response_factory_single_list_schema_multiple_errors():
+    response_dict = response_factory(
+        (200, list[SchemaA]), (401, AuthenticationError), (403, AuthorizationError), (403, CSRFError)
+    )
+
+    assert isinstance(response_dict, dict)
+    assert len(response_dict) == 3
+
+    # 200
+    assert response_dict[200] == list[SchemaA]
+
+    # 401
+    assert response_dict[401] == AuthenticationError.schema
+
+    # 403
+    assert isinstance(response_dict[403], _AnnotatedAlias)
+    assert len(response_dict[403].__args__) == 1
+    assert len(response_dict[403].__args__[0].__args__) == 2
+    assert response_dict[403].__args__[0].__args__ == (AuthorizationError.schema, CSRFError.schema)
