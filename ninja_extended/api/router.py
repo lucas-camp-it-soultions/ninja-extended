@@ -21,9 +21,9 @@ class ExtendedRouter(Router):
     def __init__(
         self,
         *,
+        tags: list[str],
         auth: Any = NOT_SET,
         throttle: BaseThrottle | list[BaseThrottle] | NOT_SET_TYPE = NOT_SET,
-        tags: list[str] | None = None,
     ) -> None:
         """Initialize an ExtendedRouter."""
 

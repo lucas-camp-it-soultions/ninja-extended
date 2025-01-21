@@ -14,12 +14,12 @@ def api_fixture():
 
 @pytest.fixture(name="router_1")
 def router_1_fixture():
-    return ExtendedRouter()
+    return ExtendedRouter(tags=["router_1"])
 
 
 @pytest.fixture(name="router_2")
 def router_2_fixture():
-    return ExtendedRouter()
+    return ExtendedRouter(tags=["router_2"])
 
 
 def test_extended_api_raises_operation_id_on_api_already_registered(

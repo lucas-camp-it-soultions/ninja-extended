@@ -13,7 +13,7 @@ def reset_router_operation_registry_fixture():
 
 @pytest.fixture(name="router")
 def router_fixture():
-    return ExtendedRouter()
+    return ExtendedRouter(tags=["router"])
 
 
 def test_extended_router_raises_operation_id_on_router_already_registered(

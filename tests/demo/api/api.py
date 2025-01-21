@@ -20,7 +20,7 @@ from ninja_extended.pagination import PageNumberPageSizePagination
 from .models import Resource
 
 api = ExtendedNinjaAPI(title="Test API", version="0.0.1", description="API description")
-router = ExtendedRouter()
+router = ExtendedRouter(tags=["resources"])
 
 
 class ResourceFieldValues:

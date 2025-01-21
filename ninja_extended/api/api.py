@@ -87,7 +87,7 @@ class ExtendedNinjaAPI(NinjaAPI):
         self.throttle = throttle
 
         self._routers: list[tuple[str, ExtendedRouter]] = []
-        self.default_router = default_router or ExtendedRouter()
+        self.default_router = default_router or ExtendedRouter(tags=["default"])
         self.add_router("", self.default_router)
 
     def get(  # noqa: PLR0913
