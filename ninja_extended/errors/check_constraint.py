@@ -1,6 +1,5 @@
 """Module error.check_constraint."""
 
-from decimal import Decimal
 from typing import Literal
 
 from ninja_extended.errors.base import APIError, APIErrorResponse

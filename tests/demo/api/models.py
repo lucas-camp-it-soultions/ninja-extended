@@ -1,4 +1,4 @@
-from django.db.models import AutoField, CharField, CheckConstraint, IntegerField, Model, Q
+from django.db.models import PROTECT, AutoField, CharField, CheckConstraint, ForeignKey, IntegerField, Model, Q
 
 
 class Resource(Model):
@@ -14,3 +14,23 @@ class Resource(Model):
     value_unique_together_2 = CharField(max_length=32)
     value_not_null = CharField(max_length=32, null=False, blank=False)
     value_check = IntegerField(null=True)
+
+
+class Child1(Model):
+    id = AutoField(primary_key=True, unique=True, editable=False)
+    resource = ForeignKey(
+        Resource,
+        on_delete=PROTECT,
+        related_name="children_1",
+        null=False,
+    )
+
+
+class Child2(Model):
+    id = AutoField(primary_key=True, unique=True, editable=False)
+    resource = ForeignKey(
+        Resource,
+        on_delete=PROTECT,
+        related_name="children_2",
+        null=False,
+    )

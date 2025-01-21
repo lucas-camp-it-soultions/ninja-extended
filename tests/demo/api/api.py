@@ -1,23 +1,26 @@
 from typing import Annotated
 
 from django.db import IntegrityError
+from django.db.models import ProtectedError as DjangoProtectedError
 from django.db.transaction import atomic
 from django.http import HttpRequest
 from ninja import Schema
-from ninja.errors import ValidationError as NinjaValidationError
 from ninja.pagination import paginate
 from pydantic import Field
 
 from ninja_extended.api import ExtendedNinjaAPI, ExtendedRouter
 from ninja_extended.errors import (
     CheckConstraintError,
+    NotFoundError,
     NotNullConstraintError,
+    ProtectedError,
     UniqueConstraintError,
     ValidationError,
+    handle_integrity_error,
+    handle_protected_error,
     register_error_handler,
     register_validation_error_handler,
 )
-from ninja_extended.errors.integrity import handle_integrity_error
 from ninja_extended.fields import IntField, IntFieldValues, StringField, StringFieldValues
 from ninja_extended.pagination import PageNumberPageSizePagination
 
@@ -65,10 +68,15 @@ class ResourceCheckConstraintError(CheckConstraintError):
     resource = "Resource"
 
 
+class ResourceProtectedError(ProtectedError):
+    resource = "Resource"
+
+
 register_validation_error_handler(api=api)
 register_error_handler(api=api, error_type=ResourceUniqueConstraintError)
 register_error_handler(api=api, error_type=ResourceNotNullConstraintError)
 register_error_handler(api=api, error_type=ResourceCheckConstraintError)
+register_error_handler(api=api, error_type=ResourceProtectedError)
 
 
 @router.get(
@@ -105,7 +113,10 @@ def create_resource(request: HttpRequest):  # noqa: ARG001
     response={
         201: ResourceResponse,
         422: Annotated[
-            ResourceNotNullConstraintError.schema | ResourceUniqueConstraintError.schema | ValidationError.schema | CheckConstraintError.schema,
+            ResourceNotNullConstraintError.schema
+            | ResourceUniqueConstraintError.schema
+            | ValidationError.schema
+            | CheckConstraintError.schema,
             Field(discriminator="type"),
         ],
     },
@@ -121,6 +132,27 @@ def create_resource(request: HttpRequest, data: ResourceCreateRequest):  # noqa:
                 not_null_constraint_error_type=ResourceNotNullConstraintError,
                 check_constraint_error_type=ResourceCheckConstraintError,
                 data=data,
+            )
+
+
+@router.delete(
+    path="/{id}",
+    operation_id="delete-resource",
+    summary="Delete a resource",
+    response={
+        204: None,
+        422: ResourceProtectedError.schema,
+    },
+)
+def create_resource(request: HttpRequest, id: int):  # noqa: ARG001
+    with atomic():
+        try:
+            Resource.objects.get(id=id).delete()
+            return 204, None
+        except DjangoProtectedError as error:
+            handle_protected_error(
+                error=error,
+                protected_error_type=ResourceProtectedError,
             )
 
 

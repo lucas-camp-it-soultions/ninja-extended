@@ -1,6 +1,6 @@
 import pytest
 from api.api import api
-from api.models import Resource
+from api.models import Child1, Child2, Resource
 from ninja.testing import TestClient
 
 test_client = TestClient(api)
@@ -13,6 +13,7 @@ def resource_data():
         "value_unique_together_1": "value",
         "value_unique_together_2": "value",
         "value_not_null": "value",
+        "value_check": 1,
     }
 
 
@@ -23,6 +24,7 @@ def resource_data_unique_single():
         "value_unique_together_1": "value1",
         "value_unique_together_2": "value1",
         "value_not_null": "value1",
+        "value_check": 1,
     }
 
 
@@ -33,6 +35,7 @@ def resource_data_unique_multiple():
         "value_unique_together_1": "value",
         "value_unique_together_2": "value",
         "value_not_null": "value1",
+        "value_check": 1,
     }
 
 
@@ -43,6 +46,7 @@ def resource_data_not_null():
         "value_unique_together_1": "value",
         "value_unique_together_2": "value",
         "value_not_null": None,
+        "value_check": 1,
     }
 
 
@@ -64,6 +68,7 @@ def resource_data_invalid():
         "value_unique_together_1": "value",
         "value_unique_together_2": "value",
         "value_not_null": None,
+        "value_check": 1,
     }
 
 
@@ -158,12 +163,39 @@ def test_validation(resource_data_invalid):
     }
 
 
+@pytest.mark.django_db
+def test_protection(resource_data):
+    resource = Resource.objects.create(**resource_data)
+    child_1 = Child1.objects.create(resource_id=resource.id)
+    child_2 = Child2.objects.create(resource_id=resource.id)
+    child_3 = Child2.objects.create(resource_id=resource.id)
+
+    response = test_client.delete(path=f"/resources/{resource.id}")
+
+    assert response.status_code == 422
+    assert response.data == {
+        "type": "errors/protection",
+        "status": 422,
+        "resource": "Resource",
+        "foreign_items": {
+            "Child1": [child_1.id],
+            "Child2": [child_2.id, child_3.id],
+        },
+        "path": "/resources/1",
+        "operation_id": "delete-resource",
+    }
+
+
 @pytest.mark.django_db(transaction=True, reset_sequences=True)
 def test_pagination():
     for i in range(10):
         value = f"value_{i}"
         Resource.objects.create(
-            value_unique=value, value_unique_together_1=value, value_unique_together_2=value, value_not_null=value
+            value_unique=value,
+            value_unique_together_1=value,
+            value_unique_together_2=value,
+            value_not_null=value,
+            value_check=1,
         )
 
     response = test_client.get(path="/resources/paginated")
@@ -184,6 +216,7 @@ def test_pagination():
                 "value_unique_together_1": f"value_{i}",
                 "value_unique_together_2": f"value_{i}",
                 "value_not_null": f"value_{i}",
+                "value_check": 1,
             }
             for i in range(10)
         ],
@@ -208,6 +241,7 @@ def test_pagination():
                 "value_unique_together_1": f"value_{i}",
                 "value_unique_together_2": f"value_{i}",
                 "value_not_null": f"value_{i}",
+                "value_check": 1,
             }
             for i in range(3)
         ],
@@ -232,6 +266,7 @@ def test_pagination():
                 "value_unique_together_1": f"value_{i}",
                 "value_unique_together_2": f"value_{i}",
                 "value_not_null": f"value_{i}",
+                "value_check": 1,
             }
             for i in range(3, 6)
         ],
@@ -256,6 +291,7 @@ def test_pagination():
                 "value_unique_together_1": f"value_{i}",
                 "value_unique_together_2": f"value_{i}",
                 "value_not_null": f"value_{i}",
+                "value_check": 1,
             }
             for i in range(6, 9)
         ],
@@ -280,6 +316,7 @@ def test_pagination():
                 "value_unique_together_1": f"value_{i}",
                 "value_unique_together_2": f"value_{i}",
                 "value_not_null": f"value_{i}",
+                "value_check": 1,
             }
             for i in range(9, 10)
         ],
