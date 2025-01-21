@@ -1,19 +1,22 @@
+from typing import Annotated
+
 from django.db import IntegrityError
 from django.db.transaction import atomic
 from django.http import HttpRequest
 from ninja import Schema
 from ninja.errors import ValidationError as NinjaValidationError
 from ninja.pagination import paginate
+from pydantic import Field
 
 from ninja_extended.api import ExtendedNinjaAPI, ExtendedRouter
 from ninja_extended.errors import (
     NotNullConstraintError,
     UniqueConstraintError,
     ValidationError,
-    register_exception_handler,
+    register_error_handler,
+    register_validation_error_handler,
 )
 from ninja_extended.errors.integrity import handle_integrity_error
-from ninja_extended.errors.validation import discriminate_validation_errors, validation_error_factory
 from ninja_extended.fields import IntField, IntFieldValues, StringField, StringFieldValues
 from ninja_extended.pagination import PageNumberPageSizePagination
 
@@ -47,47 +50,16 @@ class ResourceResponse(Schema):
 
 
 class ResourceUniqueConstraintError(UniqueConstraintError):
-    resource_name = "Resource"
+    resource = "Resource"
 
 
 class ResourceNotNullConstraintError(NotNullConstraintError):
-    resource_name = "Resource"
+    resource = "Resource"
 
 
-register_exception_handler(api=api, error_type=ResourceUniqueConstraintError)
-register_exception_handler(api=api, error_type=ResourceNotNullConstraintError)
-
-
-@api.exception_handler(NinjaValidationError)
-def validation_errors(request, exc):
-    class TestValidationError(ValidationError):
-        operation_id = request.operation_id
-
-    if request.path.startswith("/"):
-        router_prefix = request.path.split("/")[1]
-    else:
-        router_prefix = request.path.split("/")[0]
-    if router_prefix == "":
-        router_prefix = None
-
-    DerivedValidationError = type(
-        "DerivedValidationError",
-        (ValidationError,),
-        {
-            "router_prefix": router_prefix,
-            "operation_id": request.operation_id,
-        },
-    )
-
-    errors = exc.errors
-
-    error = DerivedValidationError(errors=errors)
-
-    return api.create_response(
-        request=request,
-        data=error.schema()(**error.to_dict(), path=request.path, operation_id=request.operation_id),
-        status=ValidationError.status,
-    )
+register_validation_error_handler(api=api)
+register_error_handler(api=api, error_type=ResourceUniqueConstraintError)
+register_error_handler(api=api, error_type=ResourceNotNullConstraintError)
 
 
 @router.get(
@@ -123,13 +95,10 @@ def create_resource(request: HttpRequest):  # noqa: ARG001
     summary="Create a resource",
     response={
         201: ResourceResponse,
-        422: discriminate_validation_errors(
-            [
-                ResourceNotNullConstraintError,
-                ResourceUniqueConstraintError,
-                validation_error_factory("resources", "create-resource"),
-            ]
-        ),
+        422: Annotated[
+            ResourceNotNullConstraintError.schema | ResourceUniqueConstraintError.schema | ValidationError.schema,
+            Field(discriminator="type"),
+        ],
     },
 )
 def create_resource(request: HttpRequest, data: ResourceCreateRequest):  # noqa: ARG001

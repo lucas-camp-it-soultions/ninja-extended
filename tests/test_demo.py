@@ -63,10 +63,9 @@ def test_unique_constraint_single(resource_data, resource_data_unique_single):
 
     assert response.status_code == 422
     assert response.data == {
-        "type": "errors/resources/unique-constraint",
+        "type": "errors/unique-constraint",
         "status": 422,
-        "title": "Unique constraint violation for Resource.",
-        "detail": "Unique constraint violation for Resource with (value_unique='value').",
+        "resource": "Resource",
         "fields": {
             "value_unique": "value",
         },
@@ -82,10 +81,9 @@ def test_unique_constraint_multiple(resource_data, resource_data_unique_multiple
 
     assert response.status_code == 422
     assert response.data == {
-        "type": "errors/resources/unique-constraint",
+        "type": "errors/unique-constraint",
         "status": 422,
-        "title": "Unique constraint violation for Resource.",
-        "detail": "Unique constraint violation for Resource with (value_unique_together_1='value',value_unique_together_2='value').",
+        "resource": "Resource",
         "fields": {
             "value_unique_together_1": "value",
             "value_unique_together_2": "value",
@@ -101,10 +99,9 @@ def test_not_null_constraint(resource_data_not_null):
 
     assert response.status_code == 422
     assert response.data == {
-        "type": "errors/resources/not-null-constraint",
+        "type": "errors/not-null-constraint",
         "status": 422,
-        "title": "Not null constraint violation for Resource.",
-        "detail": "Not null constraint violation for Resource with (value_not_null=null).",
+        "resource": "Resource",
         "fields": {
             "value_not_null": None,
         },
@@ -119,10 +116,8 @@ def test_validation(resource_data_invalid):
 
     assert response.status_code == 422
     assert response.data == {
-        "type": "errors/resources/create-resource/validation",
+        "type": "errors/validation",
         "status": 422,
-        "title": "Validation for operation create-resource failed.",
-        "detail": "Validation for operation create-resource failed.",
         "errors": [
             {
                 "type": "string_too_short",
@@ -270,10 +265,8 @@ def test_pagination():
 
     assert response.status_code == 422
     assert response.data == {
-        "type": "errors/resources/list-resources-paginated/validation",
+        "type": "errors/validation",
         "status": 422,
-        "title": "Validation for operation list-resources-paginated failed.",
-        "detail": "Validation for operation list-resources-paginated failed.",
         "errors": [
             {
                 "type": "less_than_equal",

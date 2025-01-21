@@ -6,11 +6,7 @@ from ninja_extended.errors import UniqueConstraintError
 
 
 class ResourceUniqueConstraintError(UniqueConstraintError):
-    resource_name = "Resource"
-
-
-class FooBarUniqueConstraintError(UniqueConstraintError):
-    resource_name = "FooBar"
+    resource = "Resource"
 
 
 @pytest.fixture
@@ -25,41 +21,16 @@ def fields():
     }
 
 
-def test_not_found_error(fields):
-    error_model = ResourceUniqueConstraintError.schema()
+def test_unique_constraint_error(fields):
     path = "/resource/1"
     operation_id = "getResource"
 
     error = ResourceUniqueConstraintError(fields=fields)
-    model = error_model(**error.to_dict(), path=path, operation_id=operation_id)
+    model = ResourceUniqueConstraintError.schema(**error.to_dict(), path=path, operation_id=operation_id)
 
-    assert model.type == "errors/resources/unique-constraint"
-    assert model.title == "Unique constraint violation for Resource."
-    assert (
-        model.detail
-        == "Unique constraint violation for Resource with (bool_true=true,bool_false=false,deciaml=42.21,float=42.21,int=42,str='foobar')."
-    )
+    assert model.type == "errors/unique-constraint"
     assert model.status == 422
+    assert model.resource == "Resource"
+    assert model.fields == fields
     assert model.path == path
     assert model.operation_id == operation_id
-    assert model.fields == fields
-
-
-def test_not_found_error_2(fields):
-    error_model = FooBarUniqueConstraintError.schema()
-    path = "/foo-bar/1"
-    operation_id = "getFooBar"
-
-    error = FooBarUniqueConstraintError(fields=fields)
-    model = error_model(**error.to_dict(), path=path, operation_id=operation_id)
-
-    assert model.type == "errors/foo-bars/unique-constraint"
-    assert model.title == "Unique constraint violation for FooBar."
-    assert (
-        model.detail
-        == "Unique constraint violation for FooBar with (bool_true=true,bool_false=false,deciaml=42.21,float=42.21,int=42,str='foobar')."
-    )
-    assert model.status == 422
-    assert model.path == path
-    assert model.operation_id == operation_id
-    assert model.fields == fields

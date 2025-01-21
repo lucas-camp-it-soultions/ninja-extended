@@ -2,16 +2,22 @@
 
 from typing import Literal
 
-from pydantic import Field, create_model
+from ninja_extended.errors.base import APIError, APIErrorResponse
 
-from ninja_extended.errors.base import APIError
+
+class AuthorizationErrorResponse(APIErrorResponse):
+    """Authorization error response class."""
+
+    type: Literal["errors/authorization"]
+    status: Literal[403]
+    permissions: list[str]
 
 
 class AuthorizationError(APIError):
     """Authorization error class."""
 
-    resource_name: str
     status: int = 403
+    schema = AuthorizationErrorResponse
 
     def __init__(
         self,
@@ -19,11 +25,7 @@ class AuthorizationError(APIError):
     ):
         """Initialize a AuthorizationError."""
 
-        error_type = "errors/auth/authorization"
-        title = "Unsufficient permissions for the operation."
-        detail = f"Unsufficient permissions for the operation. Permissions {permissions} are required."
-
-        super().__init__(type=error_type, title=title, detail=detail)
+        super().__init__(type="errors/authorization")
 
         self.permissions = permissions
 
@@ -34,47 +36,3 @@ class AuthorizationError(APIError):
         base_dict.update({"permissions": self.permissions})
 
         return base_dict
-
-    @classmethod
-    def schema(cls):
-        """Return the schema for the error.
-
-        Returns:
-            type[BaseModel]: The schema.
-        """
-
-        model_name = "AuthorizationErrorResponse"
-        error_type = "errors/auth/authorization"
-        title = "Unsufficient permissions for the operation."
-
-        return create_model(
-            model_name,
-            type=(
-                Literal[error_type],
-                Field(description=f"The type of the {model_name}."),
-            ),
-            status=(
-                Literal[cls.status],
-                Field(description=f"The status of the {model_name}."),
-            ),
-            title=(
-                Literal[title],
-                Field(description=f"The title of the {model_name}."),
-            ),
-            detail=(
-                str,
-                Field(description=f"The detail of the {model_name}."),
-            ),
-            permissions=(
-                list[str],
-                Field(description=f"The operation of the {model_name}."),
-            ),
-            path=(
-                str,
-                Field(description=f"The path of the {model_name}."),
-            ),
-            operation_id=(
-                str,
-                Field(description=f"The operation id of the {model_name}."),
-            ),
-        )

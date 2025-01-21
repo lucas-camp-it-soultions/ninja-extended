@@ -6,19 +6,27 @@ from pydantic import BaseModel
 from ninja_extended.api import ExtendedNinjaAPI
 
 
+class APIErrorResponse(BaseModel):
+    """Schema for base error class."""
+
+    type: str
+    status: int
+    path: str
+    operation_id: str
+
+
 class APIError(Exception):
     """Base error class."""
 
     status: int
+    schema: type[APIErrorResponse]
 
-    def __init__(self, type: str, title: str, detail: str | None):  # noqa: A002
+    def __init__(self, type: str):  # noqa: A002
         """Initialize an APIError."""
 
         super().__init__()
 
         self.type = type
-        self.title = title
-        self.detail = detail
 
     def to_dict(self):
         """Serialize the APIError."""
@@ -26,33 +34,10 @@ class APIError(Exception):
         return {
             "type": self.type,
             "status": self.status,
-            "title": self.title,
-            "detail": self.detail,
         }
 
-    @classmethod
-    def schema(cls) -> type[BaseModel]:
-        """Return the schema for the error.
 
-        Returns:
-            type[BaseModel]: The schema.
-        """
-
-        raise NotImplementedError("The method 'schema' must be implemented.")  # noqa: EM101
-
-
-class APIErrorResponse(BaseModel):
-    """Schema for base error class."""
-
-    type: str
-    status: int
-    title: str
-    detail: str | None = None
-    path: str
-    opertaion_id: str
-
-
-def register_exception_handler(api: ExtendedNinjaAPI, error_type: type[APIError]):
+def register_error_handler(api: ExtendedNinjaAPI, error_type: type[APIError]):
     """Register an APIError.
 
     Args:
@@ -63,7 +48,7 @@ def register_exception_handler(api: ExtendedNinjaAPI, error_type: type[APIError]
     def _handler(request: HttpRequest, error: APIError):
         return api.create_response(
             request=request,
-            data=error.schema()(**error.to_dict(), path=request.path, operation_id=request.operation_id),
+            data=error.schema(**error.to_dict(), path=request.path, operation_id=request.operation_id),
             status=error.status,
         )
 
