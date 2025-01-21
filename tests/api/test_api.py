@@ -35,14 +35,12 @@ def test_extended_api_raises_operation_id_on_api_already_registered(
         operation_id="operation_id",
         summary="Summary.",
         description="Description.",
-        tags=["tag"],
     )(operation)
     router_2.get(
         path="/",
         operation_id="operation_id",
         summary="Summary.",
         description="Description.",
-        tags=["tag"],
     )(operation)
 
     api.add_router(prefix="/1", router=router_1)
@@ -65,14 +63,12 @@ def test_extended_router_operation_ids_registered(
         operation_id="operation_id_1",
         summary="Summary.",
         description="Description.",
-        tags=["tag"],
     )(operation)
     router_2.get(
         path="/",
         operation_id="operation_id_2",
         summary="Summary.",
         description="Description.",
-        tags=["tag"],
     )(operation)
 
     api.add_router(prefix="/1", router=router_1)
