@@ -83,7 +83,7 @@ class ExtendedOperation(Operation):
         self.summary: str
         self.description: str
         self.tags: list[str]
-        self.reesponse = response
+        self.response = response
 
     def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:
         """Run the operation.

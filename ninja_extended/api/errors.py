@@ -103,3 +103,29 @@ class OperationIdOnAPIAlreadyRegisteredError(APIConfigurationError):
             operation_id (str): The operation id.
         """
         super().__init__(f"Operation id '{operation_id}' already registered on api with id {id(api)}.")
+
+
+class OperationIdNotFoundInAPIError(APIConfigurationError):
+    """Error for a not found operation id in an api."""
+
+    def __init__(self, api: NinjaAPI, operation_id: str):
+        """Initialize an OperationIdNotFoundError.
+
+        Args:
+            api (NinjaAPI): The api.
+            operation_id (str): The operation id.
+        """
+        super().__init__(f"Operation id '{operation_id}' not found in api with id {id(api)}.")
+
+
+class OperationIdNotFoundInRouterError(APIConfigurationError):
+    """Error for a not found operation id in a router."""
+
+    def __init__(self, router: Router, operation_id: str):
+        """Initialize an OperationIdNotFoundError.
+
+        Args:
+            router (Router): The router.
+            operation_id (str): The operation id.
+        """
+        super().__init__(f"Operation id '{operation_id}' not found in router with id {id(router)}.")
