@@ -1,21 +1,94 @@
 """Module pagination.page_number_page_size."""
 
+from collections.abc import AsyncGenerator, Callable
+from functools import partial, wraps
 from math import ceil
 from typing import Any
 from urllib.parse import urlparse
 
+import ninja.pagination
 from django.db.models import QuerySet
 from django.http import HttpRequest
 from ninja import Field, Schema
 from ninja.conf import settings
-from ninja.errors import ValidationError
-from ninja.pagination import AsyncPaginationBase
+from ninja.errors import ConfigError, ValidationError
+from ninja.pagination import AsyncPaginationBase, PaginationBase, make_response_paginated
+from ninja.utils import (
+    contribute_operation_args,
+    contribute_operation_callback,
+    is_async_callable,
+)
+
+
+def _inject_page_number_page_size_pagination(
+    func: Callable,
+    paginator_class: type[PaginationBase | AsyncPaginationBase],
+    **paginator_params: Any,
+) -> Callable:
+    paginator = paginator_class(**paginator_params)
+    if is_async_callable(func):
+        if not hasattr(paginator, "apaginate_queryset"):
+            raise ConfigError("Pagination class not configured for async requests")  # noqa: EM101
+
+        @wraps(func)
+        async def view_with_pagination(request: HttpRequest, **kwargs: Any) -> Any:
+            pagination_params = kwargs.pop("ninja_pagination")
+            if paginator.pass_parameter:
+                kwargs[paginator.pass_parameter] = pagination_params
+
+            items = await func(request, **kwargs)
+
+            result = await paginator.apaginate_queryset(items, pagination=pagination_params, request=request, **kwargs)
+
+            async def evaluate(results: list | QuerySet) -> AsyncGenerator:
+                for result in results:
+                    yield result
+
+            if paginator.Output:
+                result[paginator.items_attribute] = [
+                    result async for result in evaluate(result[paginator.items_attribute])
+                ]
+            return result
+
+    else:
+
+        @wraps(func)
+        def view_with_pagination(request: HttpRequest, **kwargs: Any) -> Any:
+            pagination_params = kwargs.pop("ninja_pagination")
+            if paginator.pass_parameter:
+                kwargs[paginator.pass_parameter] = pagination_params
+
+            items = func(request, **kwargs)
+
+            result = paginator.paginate_queryset(items, pagination=pagination_params, request=request, **kwargs)
+            if paginator.Output:
+                result[paginator.items_attribute] = list(result[paginator.items_attribute])
+                # ^ forcing queryset evaluation #TODO: check why pydantic did not do it here
+            return result
+
+    contribute_operation_args(
+        view_with_pagination,
+        "ninja_pagination",
+        paginator.PageNumberPageSizePaginationInput,
+        paginator.InputSource,
+    )
+
+    if paginator.Output:
+        contribute_operation_callback(
+            view_with_pagination,
+            partial(make_response_paginated, paginator),
+        )
+
+    return view_with_pagination
+
+
+ninja.pagination._inject_pagination = _inject_page_number_page_size_pagination  # noqa: SLF001
 
 
 class PageNumberPageSizePagination(AsyncPaginationBase):
     """Pagination with page number and page size."""
 
-    class Input(Schema):
+    class PageNumberPageSizePaginationInput(Schema):
         """Input for PageNumberPagination."""
 
         page: int = Field(1, ge=1)
@@ -40,7 +113,7 @@ class PageNumberPageSizePagination(AsyncPaginationBase):
     def paginate_queryset(
         self,
         queryset: QuerySet,
-        pagination: Input,
+        pagination: PageNumberPageSizePaginationInput,
         request: HttpRequest,
         **params: Any,  # noqa: ARG002
     ) -> Any:
@@ -63,6 +136,18 @@ class PageNumberPageSizePagination(AsyncPaginationBase):
                     }
                 ]
             )
+
+        if count == 0:
+            return {
+                "count": 0,
+                "current_page": 0,
+                "pages": 0,
+                "previous_page": None,
+                "next_page": None,
+                "previous_url": None,
+                "next_url": None,
+                "items": [],
+            }
 
         next_page, previous_page = None, None
         next_url, previous_url = None, None
@@ -92,7 +177,7 @@ class PageNumberPageSizePagination(AsyncPaginationBase):
     def apaginate_queryset(
         self,
         queryset: QuerySet,
-        pagination: Input,
+        pagination: PageNumberPageSizePaginationInput,
         request: HttpRequest,
         **params: Any,  # noqa: ARG002
     ) -> Any:
@@ -115,6 +200,18 @@ class PageNumberPageSizePagination(AsyncPaginationBase):
                     }
                 ]
             )
+
+        if count == 0:
+            return {
+                "count": 0,
+                "current_page": 0,
+                "pages": 0,
+                "previous_page": None,
+                "next_page": None,
+                "previous_url": None,
+                "next_url": None,
+                "items": [],
+            }
 
         next_page, previous_page = None, None
         next_url, previous_url = None, None

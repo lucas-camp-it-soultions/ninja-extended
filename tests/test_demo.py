@@ -86,7 +86,7 @@ def test_unique_constraint_single(resource_data, resource_data_unique_single):
             "value_unique": "value",
         },
         "path": "/resources/",
-        "operation_id": "create-resource",
+        "operation_id": "createResource",
     }
 
 
@@ -105,7 +105,7 @@ def test_unique_constraint_multiple(resource_data, resource_data_unique_multiple
             "value_unique_together_2": "value",
         },
         "path": "/resources/",
-        "operation_id": "create-resource",
+        "operation_id": "createResource",
     }
 
 
@@ -122,7 +122,7 @@ def test_not_null_constraint(resource_data_not_null):
             "value_not_null": None,
         },
         "path": "/resources/",
-        "operation_id": "create-resource",
+        "operation_id": "createResource",
     }
 
 
@@ -136,7 +136,7 @@ def test_check_constraint(resource_data_check):
         "status": 422,
         "resource": "Resource",
         "path": "/resources/",
-        "operation_id": "create-resource",
+        "operation_id": "createResource",
     }
 
 
@@ -159,7 +159,7 @@ def test_validation(resource_data_invalid):
             },
         ],
         "path": "/resources/",
-        "operation_id": "create-resource",
+        "operation_id": "createResource",
     }
 
 
@@ -182,7 +182,7 @@ def test_protection(resource_data):
             "Child2": [child_2.id, child_3.id],
         },
         "path": "/resources/1",
-        "operation_id": "delete-resource",
+        "operation_id": "deleteResourceById",
     }
 
 
@@ -198,7 +198,7 @@ def test_pagination():
             value_check=1,
         )
 
-    response = test_client.get(path="/resources/paginated")
+    response = test_client.get(path="/resources/pagination")
 
     assert response.status_code == 200
     assert response.data == {
@@ -223,7 +223,7 @@ def test_pagination():
     }
 
     # Pagesize 3; Page 1
-    response = test_client.get(path="/resources/paginated?page_size=3&page=1")
+    response = test_client.get(path="/resources/pagination?page_size=3&page=1")
 
     assert response.status_code == 200
     assert response.data == {
@@ -233,7 +233,7 @@ def test_pagination():
         "previous_page": None,
         "next_page": 2,
         "previous_url": None,
-        "next_url": "http://testlocation/resources/paginated?page_size=3&page=2",
+        "next_url": "http://testlocation/resources/pagination?page_size=3&page=2",
         "items": [
             {
                 "id": i + 1,
@@ -248,7 +248,7 @@ def test_pagination():
     }
 
     # Pagesize 3; Page 2
-    response = test_client.get(path="/resources/paginated?page_size=3&page=2")
+    response = test_client.get(path="/resources/pagination?page_size=3&page=2")
 
     assert response.status_code == 200
     assert response.data == {
@@ -257,8 +257,8 @@ def test_pagination():
         "current_page": 2,
         "previous_page": 1,
         "next_page": 3,
-        "previous_url": "http://testlocation/resources/paginated?page_size=3&page=1",
-        "next_url": "http://testlocation/resources/paginated?page_size=3&page=3",
+        "previous_url": "http://testlocation/resources/pagination?page_size=3&page=1",
+        "next_url": "http://testlocation/resources/pagination?page_size=3&page=3",
         "items": [
             {
                 "id": i + 1,
@@ -273,7 +273,7 @@ def test_pagination():
     }
 
     # Pagesize 3; Page 3
-    response = test_client.get(path="/resources/paginated?page_size=3&page=3")
+    response = test_client.get(path="/resources/pagination?page_size=3&page=3")
 
     assert response.status_code == 200
     assert response.data == {
@@ -282,8 +282,8 @@ def test_pagination():
         "current_page": 3,
         "previous_page": 2,
         "next_page": 4,
-        "previous_url": "http://testlocation/resources/paginated?page_size=3&page=2",
-        "next_url": "http://testlocation/resources/paginated?page_size=3&page=4",
+        "previous_url": "http://testlocation/resources/pagination?page_size=3&page=2",
+        "next_url": "http://testlocation/resources/pagination?page_size=3&page=4",
         "items": [
             {
                 "id": i + 1,
@@ -298,7 +298,7 @@ def test_pagination():
     }
 
     # Pagesize 3; Page 4
-    response = test_client.get(path="/resources/paginated?page_size=3&page=4")
+    response = test_client.get(path="/resources/pagination?page_size=3&page=4")
 
     assert response.status_code == 200
     assert response.data == {
@@ -307,7 +307,7 @@ def test_pagination():
         "current_page": 4,
         "previous_page": 3,
         "next_page": None,
-        "previous_url": "http://testlocation/resources/paginated?page_size=3&page=3",
+        "previous_url": "http://testlocation/resources/pagination?page_size=3&page=3",
         "next_url": None,
         "items": [
             {
@@ -323,7 +323,7 @@ def test_pagination():
     }
 
     # Pagesize 3; Page 5
-    response = test_client.get(path="/resources/paginated?page_size=3&page=5")
+    response = test_client.get(path="/resources/pagination?page_size=3&page=5")
 
     assert response.status_code == 422
     assert response.data == {
@@ -337,6 +337,6 @@ def test_pagination():
                 "ctx": {"le": 4},
             },
         ],
-        "path": "/resources/paginated?page_size=3&page=5",
-        "operation_id": "list-resources-paginated",
+        "path": "/resources/pagination?page_size=3&page=5",
+        "operation_id": "listResourcesPagination",
     }
