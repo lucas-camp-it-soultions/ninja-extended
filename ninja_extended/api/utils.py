@@ -1,5 +1,6 @@
 """Module api.utils."""
 
+from types import GenericAlias
 from typing import Annotated, _AnnotatedAlias
 
 from ninja import Schema
@@ -41,7 +42,7 @@ def response_factory(*responses: tuple[int, type[Schema]] | type[APIError]):
             if (
                 response_schema is not None
                 and not (
-                    isinstance(response_schema, type)
+                    isinstance(response_schema, type | GenericAlias)
                     and hasattr(response_schema, "__origin__")
                     and response_schema.__origin__ is list
                 )
