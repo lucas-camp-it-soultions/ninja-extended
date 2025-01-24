@@ -141,7 +141,15 @@ def is_response_registered_in_operation(  # noqa: PLR0912
         if not isinstance(status, int):
             raise TypeError(invalid_response_tuple_message)
 
-        if response_schema is not None and not issubclass(response_schema, Schema):
+        if (
+            response_schema is not None
+            and not (
+                isinstance(response_schema, type | GenericAlias)
+                and hasattr(response_schema, "__origin__")
+                and response_schema.__origin__ is list
+            )
+            and not issubclass(response_schema, Schema)
+        ):
             raise TypeError(invalid_response_tuple_message)
     elif issubclass(response, APIError):
         status = response.status
