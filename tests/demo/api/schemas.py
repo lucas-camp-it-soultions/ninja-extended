@@ -25,12 +25,8 @@ class ResourceCreateRequest(Schema):
 
 class ResourceUpdateRequest(Schema):
     value_unique: str = StringField(field_values=ResourceFieldValues.value_unique, default=None)
-    value_unique_together_1: str = StringField(
-        field_values=ResourceFieldValues.value_unique_together_1, default=None
-    )
-    value_unique_together_2: str = StringField(
-        field_values=ResourceFieldValues.value_unique_together_2, default=None
-    )
+    value_unique_together_1: str = StringField(field_values=ResourceFieldValues.value_unique_together_1, default=None)
+    value_unique_together_2: str = StringField(field_values=ResourceFieldValues.value_unique_together_2, default=None)
     value_not_null: str | None = StringField(field_values=ResourceFieldValues.value_not_null, default=None)
     value_check: int | None = IntField(field_values=ResourceFieldValues.value_check, default=None)
 

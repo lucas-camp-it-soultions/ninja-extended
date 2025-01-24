@@ -17,6 +17,8 @@ from django.db.models import (
     QuerySet,
 )
 from django.db.transaction import atomic
+from ninja.constants import NOT_SET, NOT_SET_TYPE
+
 from api.errors import (
     ResourceCheckConstraintError,
     ResourceMultipleObjectsReturnedError,
@@ -25,8 +27,6 @@ from api.errors import (
     ResourceProtectedError,
     ResourceUniqueConstraintError,
 )
-from ninja.constants import NOT_SET, NOT_SET_TYPE
-
 from ninja_extended.errors import handle_integrity_error, handle_protected_error
 
 
