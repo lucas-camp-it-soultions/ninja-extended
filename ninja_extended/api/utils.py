@@ -1,5 +1,15 @@
 """Module api.utils."""
 
+from inspect import (
+    _KEYWORD_ONLY,
+    _POSITIONAL_ONLY,
+    _POSITIONAL_OR_KEYWORD,
+    _VAR_KEYWORD,
+    _VAR_POSITIONAL,
+    FullArgSpec,
+    Signature,
+    _signature_from_callable,
+)
 from types import GenericAlias
 from typing import Annotated, _AnnotatedAlias
 
@@ -73,7 +83,7 @@ def get_operation_from_api_by_operation_id(api: ExtendedNinjaAPI, operation_id: 
         operation_id (str): The operation id.
 
     Raises:
-        OperationIdNotFoundError: If the operation id is not ound.
+        OperationIdNotFoundError: If the operation id is not found.
 
     Returns:
         ExtendedOperation: The operation.
@@ -96,7 +106,7 @@ def get_operation_from_router_by_operation_id(router: ExtendedRouter, operation_
         operation_id (str): The operation id.
 
     Raises:
-        OperationIdNotFoundError: If the operation id is not ound.
+        OperationIdNotFoundError: If the operation id is not found.
 
     Returns:
         ExtendedOperation: The operation.
@@ -172,3 +182,64 @@ def is_response_registered_in_operation(  # noqa: PLR0912
             return True
 
     return False
+
+
+def get_full_arg_spec(func):  # noqa: PLR0912
+    """Get the full argument specification for the given callable."""
+
+    try:
+        sig = _signature_from_callable(
+            func, follow_wrapper_chains=True, skip_bound_arg=False, sigcls=Signature, eval_str=False
+        )
+    except Exception as ex:
+        # Most of the times 'signature' will raise ValueError.
+        # But, it can also raise AttributeError, and, maybe something
+        # else. So to be fully backwards compatible, we catch all
+        # possible exceptions here, and reraise a TypeError.
+        raise TypeError("unsupported callable") from ex  # noqa: EM101
+
+    args = []
+    varargs = None
+    varkw = None
+    posonlyargs = []
+    kwonlyargs = []
+    annotations = {}
+    defaults = ()
+    kwdefaults = {}
+
+    if sig.return_annotation is not sig.empty:
+        annotations["return"] = sig.return_annotation
+
+    for param in sig.parameters.values():
+        kind = param.kind
+        name = param.name
+
+        if kind is _POSITIONAL_ONLY:
+            posonlyargs.append(name)
+            if param.default is not param.empty:
+                defaults += (param.default,)
+        elif kind is _POSITIONAL_OR_KEYWORD:
+            args.append(name)
+            if param.default is not param.empty:
+                defaults += (param.default,)
+        elif kind is _VAR_POSITIONAL:
+            varargs = name
+        elif kind is _KEYWORD_ONLY:
+            kwonlyargs.append(name)
+            if param.default is not param.empty:
+                kwdefaults[name] = param.default
+        elif kind is _VAR_KEYWORD:
+            varkw = name
+
+        if param.annotation is not param.empty:
+            annotations[name] = param.annotation
+
+    if not kwdefaults:
+        # compatibility with 'func.__kwdefaults__'
+        kwdefaults = None
+
+    if not defaults:
+        # compatibility with 'func.__defaults__'
+        defaults = None
+
+    return FullArgSpec(posonlyargs + args, varargs, varkw, defaults, kwonlyargs, kwdefaults, annotations)
