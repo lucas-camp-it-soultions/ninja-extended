@@ -23,7 +23,7 @@ class SortEnumMeta(EnumMeta):
         for member_name in member_names:
             value = classdict[member_name]
             del classdict[member_name]
-            classdict._member_names.remove(member_name)  # noqa: SLF001
+            del classdict._member_names[member_name]  # noqa: SLF001
 
             key_asc = f"{member_name}_asc"
             field_asc = value
@@ -102,6 +102,9 @@ class SortSchema(Schema):
     def sort(self, queryset: T) -> T:
         """Sort the queryset."""
 
-        ordering = [o._field_ for o in self.ordering] if self.ordering is not None else None
+        if self.ordering is None:
+            return queryset
+
+        ordering = [o._field_ for o in self.ordering]
 
         return queryset.order_by(*ordering)
