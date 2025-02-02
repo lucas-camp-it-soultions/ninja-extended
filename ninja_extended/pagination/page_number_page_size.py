@@ -4,7 +4,7 @@ from collections.abc import AsyncGenerator, Callable
 from functools import partial, wraps
 from math import ceil
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 import ninja.pagination
 from django.db.models import QuerySet
@@ -151,17 +151,17 @@ class PageNumberPageSizePagination(AsyncPaginationBase):
 
         next_page, previous_page = None, None
         next_url, previous_url = None, None
+        query_params = request.GET.copy()
+        query_params["page_size"] = pagination.page_size
 
         if pagination.page > 1:
             previous_page = pagination.page - 1
-            previous_url = request.build_absolute_uri(
-                f"{urlparse(request.path).path}?page_size={pagination.page_size}&page={previous_page}"
-            )
+            query_params["page"] = previous_page
+            previous_url = request.build_absolute_uri(f"{urlparse(request.path).path}?{urlencode(query=query_params)}")
         if offset + pagination.page_size < count:
             next_page = pagination.page + 1
-            next_url = request.build_absolute_uri(
-                f"{urlparse(request.path).path}?page_size={pagination.page_size}&page={next_page}"
-            )
+            query_params["page"] = next_page
+            next_url = request.build_absolute_uri(f"{urlparse(request.path).path}?{urlencode(query=query_params)}")
 
         return {
             "count": count,
@@ -215,17 +215,17 @@ class PageNumberPageSizePagination(AsyncPaginationBase):
 
         next_page, previous_page = None, None
         next_url, previous_url = None, None
+        query_params = request.GET.copy()
+        query_params["page_size"] = pagination.page_size
 
         if pagination.page > 1:
             previous_page = pagination.page - 1
-            previous_url = request.build_absolute_uri(
-                f"{urlparse(request.path).path}?page_size={pagination.page_size}&page={previous_page}"
-            )
+            query_params["page"] = previous_page
+            previous_url = request.build_absolute_uri(f"{urlparse(request.path).path}?{urlencode(query=query_params)}")
         if offset + pagination.page_size < count:
             next_page = pagination.page + 1
-            next_url = request.build_absolute_uri(
-                f"{urlparse(request.path).path}?page_size={pagination.page_size}&page={next_page}"
-            )
+            query_params["page"] = next_page
+            next_url = request.build_absolute_uri(f"{urlparse(request.path).path}?{urlencode(query=query_params)}")
 
         return {
             "count": count,
