@@ -91,8 +91,8 @@ class PageNumberPageSizePagination(AsyncPaginationBase):
     class PageNumberPageSizePaginationInput(Schema):
         """Input for PageNumberPagination."""
 
-        page: int = Field(1, ge=1)
-        page_size: int = Field(settings.PAGINATION_PER_PAGE, ge=1)
+        page: int = Field(default=1, ge=1, description="The page number.")
+        page_size: int = Field(default=settings.PAGINATION_PER_PAGE, ge=1, description="The page size.")
 
     class Output(Schema):
         """Output for PageNumberPagination."""
