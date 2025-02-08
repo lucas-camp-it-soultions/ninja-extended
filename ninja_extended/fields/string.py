@@ -12,21 +12,6 @@ from .base import BaseField, BaseFieldValues
 class StringFieldValues(BaseFieldValues):
     """Schema for string fields."""
 
-    strip_whitespace: bool | None = PydanticField(
-        description="Whether to remove leading and trailing whitespace.",
-        default=None,
-        strict=True,
-    )
-    to_upper: bool | None = PydanticField(
-        description="Whether to turn all characters to uppercase.",
-        default=None,
-        strict=True,
-    )
-    to_lower: bool | None = PydanticField(
-        description="Whether to turn all characters to lowercase.",
-        default=None,
-        strict=True,
-    )
     min_length: int | None = PydanticField(
         description="The minimum length of the string.",
         default=None,
