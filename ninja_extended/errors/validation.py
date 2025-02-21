@@ -1,6 +1,7 @@
 """Module error.not_found."""
 
-from typing import Any, Literal
+from decimal import Decimal
+from typing import Literal
 
 from django.http import HttpRequest
 from ninja.errors import ValidationError as NinjaValidationError
@@ -16,7 +17,7 @@ class ValidationErrorDetailResponse(BaseModel):
     type: str
     loc: tuple[str | int, ...]
     msg: str
-    ctx: dict[str, Any] | None = Field(default=None)
+    ctx: dict[str, bool | Decimal | float | int | str | None] | None = Field(default=None)
 
 
 class ValidationErrorResponse(APIErrorResponse):
