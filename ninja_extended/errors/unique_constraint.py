@@ -26,3 +26,12 @@ class UniqueConstraintError(WithFieldsError):
         """Initialize an UniqueConstraintError."""
 
         super().__init__(type="errors/unique-constraint", fields=fields)
+
+
+def unique_constraint_error_factory(resource_: str):
+    """Get a resource specific UniqueConstraintError class."""
+
+    class Error(UniqueConstraintError):
+        resource = resource_
+
+    return Error

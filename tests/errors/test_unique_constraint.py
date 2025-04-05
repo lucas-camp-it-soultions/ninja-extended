@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 
-from ninja_extended.errors import UniqueConstraintError
+from ninja_extended.errors import UniqueConstraintError, unique_constraint_error_factory
 
 
 class ResourceUniqueConstraintError(UniqueConstraintError):
@@ -21,12 +21,19 @@ def fields():
     }
 
 
-def test_unique_constraint_error(fields):
+@pytest.mark.parametrize(
+    "error_class",
+    [
+        ResourceUniqueConstraintError,
+        unique_constraint_error_factory(resource_="Resource"),
+    ],
+)
+def test_unique_constraint_error(error_class: type[UniqueConstraintError], fields):
     path = "/resource/1"
     operation_id = "getResource"
 
-    error = ResourceUniqueConstraintError(fields=fields)
-    model = ResourceUniqueConstraintError.schema(**error.to_dict(), path=path, operation_id=operation_id)
+    error = error_class(fields=fields)
+    model = error_class.schema(**error.to_dict(), path=path, operation_id=operation_id)
 
     assert model.type == "errors/unique-constraint"
     assert model.status == 422

@@ -38,3 +38,12 @@ class CheckConstraintError(APIError):
         )
 
         return base_dict
+
+
+def check_constraint_error_factory(resource_: str):
+    """Get a resource specific CheckConstraintError class."""
+
+    class Error(CheckConstraintError):
+        resource = resource_
+
+    return Error

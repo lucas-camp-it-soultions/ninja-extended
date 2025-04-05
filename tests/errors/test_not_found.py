@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 
-from ninja_extended.errors import NotFoundError
+from ninja_extended.errors import NotFoundError, not_found_error_factory
 
 
 class ResourceNotFoundError(NotFoundError):
@@ -21,12 +21,19 @@ def fields():
     }
 
 
-def test_not_found_error(fields):
+@pytest.mark.parametrize(
+    "error_class",
+    [
+        ResourceNotFoundError,
+        not_found_error_factory(resource_="Resource"),
+    ],
+)
+def test_not_found_error(error_class: type[NotFoundError], fields):
     path = "/resource/1"
     operation_id = "getResource"
 
-    error = ResourceNotFoundError(fields=fields)
-    model = ResourceNotFoundError.schema(**error.to_dict(), path=path, operation_id=operation_id)
+    error = error_class(fields=fields)
+    model = error_class.schema(**error.to_dict(), path=path, operation_id=operation_id)
 
     assert model.type == "errors/not-found"
     assert model.status == 404

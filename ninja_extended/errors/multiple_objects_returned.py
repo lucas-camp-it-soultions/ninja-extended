@@ -26,3 +26,12 @@ class MultipleObjectsReturnedError(WithFieldsError):
         """Initialize a MultipleObjectsReturnedError."""
 
         super().__init__(type="errors/multiple-objects-returned", fields=fields)
+
+
+def multiple_objects_returned_error_factory(resource_: str):
+    """Get a resource specific MultipleObjectsReturnedError class."""
+
+    class Error(MultipleObjectsReturnedError):
+        resource = resource_
+
+    return Error

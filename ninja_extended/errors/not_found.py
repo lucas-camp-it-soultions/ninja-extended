@@ -26,3 +26,12 @@ class NotFoundError(WithFieldsError):
         """Initialize a NotFoundError."""
 
         super().__init__(type="errors/not-found", fields=fields)
+
+
+def not_found_error_factory(resource_: str):
+    """Get a resource specific NotFoundError class."""
+
+    class Error(NotFoundError):
+        resource = resource_
+
+    return Error

@@ -74,3 +74,12 @@ def handle_protected_error(
         foreign_items[model_name] = sorted(foreign_items[model_name])
 
     raise protected_error_type(foreign_items=foreign_items)
+
+
+def protected_error_factory(resource_: str):
+    """Get a resource specific ProtectedError class."""
+
+    class Error(ProtectedError):
+        resource = resource_
+
+    return Error

@@ -26,3 +26,12 @@ class NotNullConstraintError(WithFieldsError):
         """Initialize an NotNullConstraintError."""
 
         super().__init__(type="errors/not-null-constraint", fields=fields)
+
+
+def not_null_constraint_error_factory(resource_: str):
+    """Get a resource specific NotNullConstraintError class."""
+
+    class Error(NotNullConstraintError):
+        resource = resource_
+
+    return Error

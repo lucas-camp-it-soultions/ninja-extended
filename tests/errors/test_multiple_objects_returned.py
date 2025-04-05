@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 
-from ninja_extended.errors import MultipleObjectsReturnedError
+from ninja_extended.errors import MultipleObjectsReturnedError, multiple_objects_returned_error_factory
 
 
 class ResourceMultipleObjectsReturnedError(MultipleObjectsReturnedError):
@@ -21,12 +21,19 @@ def fields():
     }
 
 
-def test_multiple_objects_returned_error(fields):
+@pytest.mark.parametrize(
+    "error_class",
+    [
+        ResourceMultipleObjectsReturnedError,
+        multiple_objects_returned_error_factory(resource_="Resource"),
+    ],
+)
+def test_multiple_objects_returned_error(error_class: type[MultipleObjectsReturnedError], fields):
     path = "/resource/1"
     operation_id = "getResource"
 
-    error = ResourceMultipleObjectsReturnedError(fields=fields)
-    model = ResourceMultipleObjectsReturnedError.schema(**error.to_dict(), path=path, operation_id=operation_id)
+    error = error_class(fields=fields)
+    model = error_class.schema(**error.to_dict(), path=path, operation_id=operation_id)
 
     assert model.type == "errors/multiple-objects-returned"
     assert model.status == 422
