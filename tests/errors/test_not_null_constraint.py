@@ -4,6 +4,8 @@ import pytest
 
 from ninja_extended.errors import NotNullConstraintError, not_null_constraint_error_factory
 
+from .resource_errors import ResourceErrors
+
 
 class ResourceNotNullConstraintError(NotNullConstraintError):
     resource = "Resource"
@@ -26,6 +28,7 @@ def fields():
     [
         ResourceNotNullConstraintError,
         not_null_constraint_error_factory(resource_="Resource"),
+        ResourceErrors.NozNullConstraint,
     ],
 )
 def test_not_found_error(error_class: type[NotNullConstraintError], fields):

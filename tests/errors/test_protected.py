@@ -2,6 +2,8 @@ import pytest
 
 from ninja_extended.errors import ProtectedError, protected_error_factory
 
+from .resource_errors import ResourceErrors
+
 
 class ResourceProtectedError(ProtectedError):
     resource = "Resource"
@@ -20,6 +22,7 @@ def foreign_items():
     [
         ResourceProtectedError,
         protected_error_factory(resource_="Resource"),
+        ResourceErrors.Protected,
     ],
 )
 def test_protected_error(error_class: type[ProtectedError], foreign_items):

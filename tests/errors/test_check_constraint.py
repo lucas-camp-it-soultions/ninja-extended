@@ -2,6 +2,8 @@ import pytest
 
 from ninja_extended.errors import CheckConstraintError, check_constraint_error_factory
 
+from .resource_errors import ResourceErrors
+
 
 class ResourceCheckConstraintError(CheckConstraintError):
     resource = "Resource"
@@ -12,6 +14,7 @@ class ResourceCheckConstraintError(CheckConstraintError):
     [
         ResourceCheckConstraintError,
         check_constraint_error_factory(resource_="Resource"),
+        ResourceErrors.CheckConstraint,
     ],
 )
 def test_check_error(error_class: type[CheckConstraintError]):

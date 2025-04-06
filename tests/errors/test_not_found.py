@@ -4,6 +4,8 @@ import pytest
 
 from ninja_extended.errors import NotFoundError, not_found_error_factory
 
+from .resource_errors import ResourceErrors
+
 
 class ResourceNotFoundError(NotFoundError):
     resource = "Resource"
@@ -26,6 +28,7 @@ def fields():
     [
         ResourceNotFoundError,
         not_found_error_factory(resource_="Resource"),
+        ResourceErrors.NotFound,
     ],
 )
 def test_not_found_error(error_class: type[NotFoundError], fields):

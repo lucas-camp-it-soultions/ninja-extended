@@ -4,6 +4,8 @@ import pytest
 
 from ninja_extended.errors import MultipleObjectsReturnedError, multiple_objects_returned_error_factory
 
+from .resource_errors import ResourceErrors
+
 
 class ResourceMultipleObjectsReturnedError(MultipleObjectsReturnedError):
     resource = "Resource"
@@ -26,6 +28,7 @@ def fields():
     [
         ResourceMultipleObjectsReturnedError,
         multiple_objects_returned_error_factory(resource_="Resource"),
+        ResourceErrors.MultipleObjectsReturned,
     ],
 )
 def test_multiple_objects_returned_error(error_class: type[MultipleObjectsReturnedError], fields):

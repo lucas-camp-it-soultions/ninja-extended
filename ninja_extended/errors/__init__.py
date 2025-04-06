@@ -15,6 +15,7 @@ from ninja_extended.errors.multiple_objects_returned import (
 from ninja_extended.errors.not_found import NotFoundError, not_found_error_factory
 from ninja_extended.errors.not_null_constraint import NotNullConstraintError, not_null_constraint_error_factory
 from ninja_extended.errors.protected import ProtectedError, handle_protected_error, protected_error_factory
+from ninja_extended.errors.resource import ResourceErrors
 from ninja_extended.errors.unique_constraint import UniqueConstraintError, unique_constraint_error_factory
 from ninja_extended.errors.validation import (
     ValidationError,

@@ -4,6 +4,8 @@ import pytest
 
 from ninja_extended.errors import UniqueConstraintError, unique_constraint_error_factory
 
+from .resource_errors import ResourceErrors
+
 
 class ResourceUniqueConstraintError(UniqueConstraintError):
     resource = "Resource"
@@ -26,6 +28,7 @@ def fields():
     [
         ResourceUniqueConstraintError,
         unique_constraint_error_factory(resource_="Resource"),
+        ResourceErrors.UniqueConstraint,
     ],
 )
 def test_unique_constraint_error(error_class: type[UniqueConstraintError], fields):
